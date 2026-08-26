@@ -1,0 +1,32 @@
+{
+  "name": "Concrete Kings Central",
+  "short_name": "CK Central",
+  "description": "Tablet-optimized, offline-first gate guard attendance and central dispatch console.",
+  "start_url": "/gate",
+  "display": "standalone",
+  "background_color": "#0d0e12",
+  "theme_color": "#e05300",
+  "lang": "en",
+  "scope": "/gate",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/gate-icon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/gate-icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/gate-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
