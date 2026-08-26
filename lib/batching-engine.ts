@@ -153,6 +153,13 @@ export interface BatchCalculationOutput {
     strengthAdj: number; // adjustment factor from W/C
   };
 
+  // Aggregate Ratio (Sand vs Coarse Aggregate ratio)
+  aggregateRatio: {
+    sandPct: number;
+    stonePct: number;
+    ratioFormatted: string; // e.g. "60:40"
+  };
+
   // Paste Volume Fraction
   paste: {
     pastePct: number;
@@ -319,6 +326,12 @@ export function calculateBatchFormulation(
     yieldStatus = "Over-yielding";
   }
 
+  // Aggregate Ratio (Sand % vs Stone %)
+  const totalAggDry = baseSandDry + baseStoneDry;
+  const sandPct = totalAggDry > 0 ? Math.round((baseSandDry / totalAggDry) * 100) : 55;
+  const stonePct = 100 - sandPct;
+  const aggregateRatioFormatted = `${sandPct}:${stonePct}`;
+
   return {
     cementTotal,
     sandTotal,
@@ -336,6 +349,11 @@ export function calculateBatchFormulation(
     replacementStone,
     baseSandDry,
     baseStoneDry,
+    aggregateRatio: {
+      sandPct,
+      stonePct,
+      ratioFormatted: aggregateRatioFormatted,
+    },
     wcRatio,
     wcTarget,
     wcStatus,

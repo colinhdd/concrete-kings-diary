@@ -1503,8 +1503,13 @@ export default function NewLoadForm({
                 </div>
 
                 <div style={{ backgroundColor: "var(--bg-tertiary)", padding: "8px 10px", borderRadius: "8px", textAlign: "center" }}>
-                  <div style={{ color: "var(--text-secondary)", fontSize: "0.68rem" }}>3d Strength</div>
-                  <strong style={{ color: "#3b82f6" }}>{batchPhysics.strength.s3d.toLocaleString()} PSI</strong>
+                  <div style={{ color: "var(--text-secondary)", fontSize: "0.68rem" }}>Aggregate Ratio</div>
+                  <strong style={{ color: "#3b82f6" }}>
+                    {batchPhysics.aggregateRatio?.ratioFormatted || "60:40"}{" "}
+                    <span style={{ fontSize: "0.68rem", fontWeight: "normal", color: "var(--text-muted)" }}>
+                      (Sand:Stone)
+                    </span>
+                  </strong>
                 </div>
 
                 <div style={{ backgroundColor: "var(--bg-tertiary)", padding: "8px 10px", borderRadius: "8px", textAlign: "center" }}>
