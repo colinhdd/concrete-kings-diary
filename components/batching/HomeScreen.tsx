@@ -106,15 +106,34 @@ export default function HomeScreen({
 
   const issueLoads = useMemo(() => {
     return loadsList.filter((load) => {
-      const obs = Array.isArray(load.concreteObservations) && load.concreteObservations.length > 0
+      const rawObs = Array.isArray(load.concreteObservations)
         ? load.concreteObservations
-        : ["Perfect"];
-      const hasConditionIssues = obs.some((o) => o.toLowerCase() !== "perfect" && o.toLowerCase() !== "normal");
-      const hasWaterAdjustment = load.waterAdjustment !== 0;
-      const hasBatchAdjustments = Array.isArray(load.batchAdjustments) && load.batchAdjustments.length > 0;
-      const hasNotes = Boolean(load.batcherNotes && load.batcherNotes.trim());
+        : load.concreteObservations
+        ? [String(load.concreteObservations)]
+        : [];
 
-      return hasConditionIssues || hasWaterAdjustment || hasBatchAdjustments || hasNotes;
+      // Filter out non-issue / normal states
+      const actualIssues = rawObs.filter((o) => {
+        const lower = o.trim().toLowerCase();
+        return (
+          lower !== "perfect" &&
+          lower !== "normal" &&
+          !lower.startsWith("normal (") &&
+          lower !== "standard" &&
+          lower !== "did not review" &&
+          lower !== "ok" &&
+          lower !== "good"
+        );
+      });
+
+      const hasFlaggedIssues = actualIssues.length > 0;
+      const hasActionTaken = Boolean(
+        (load.actionsTaken && load.actionsTaken.length > 0) ||
+        (load.actionTaken && load.actionTaken.trim() && load.actionTaken.toLowerCase() !== "none")
+      );
+      const hasReviewNotes = Boolean(load.batcherNotes && load.batcherNotes.trim());
+
+      return hasFlaggedIssues || hasActionTaken || hasReviewNotes;
     });
   }, [loadsList]);
 
@@ -253,133 +272,175 @@ export default function HomeScreen({
         {issueLoads.length > 0 ? (
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             {issueLoads.map((load) => {
-              const obs = Array.isArray(load.concreteObservations) && load.concreteObservations.length > 0
+              const rawObs = Array.isArray(load.concreteObservations)
                 ? load.concreteObservations
-                : ["Perfect"];
-              const conditionIssues = obs.filter((o) => o.toLowerCase() !== "perfect" && o.toLowerCase() !== "normal");
+                : load.concreteObservations
+                ? [String(load.concreteObservations)]
+                : [];
+
+              const actualIssues = rawObs.filter((o) => {
+                const lower = o.trim().toLowerCase();
+                return (
+                  lower !== "perfect" &&
+                  lower !== "normal" &&
+                  !lower.startsWith("normal (") &&
+                  lower !== "standard" &&
+                  lower !== "did not review" &&
+                  lower !== "ok" &&
+                  lower !== "good"
+                );
+              });
+
+              const isDidNotReview = rawObs.some((o) => o.trim().toLowerCase() === "did not review");
               const hasNotes = Boolean(load.batcherNotes && load.batcherNotes.trim());
-              const hasAdjs = Array.isArray(load.batchAdjustments) && load.batchAdjustments.length > 0;
-              const hasWaterTrim = load.waterAdjustment !== 0;
+              const actionsList = (load.actionsTaken && load.actionsTaken.length > 0)
+                ? load.actionsTaken
+                : load.actionTaken && load.actionTaken.trim() && load.actionTaken.toLowerCase() !== "none"
+                ? [load.actionTaken]
+                : [];
 
               return (
                 <div
                   key={load.id}
                   onClick={() => onSelectLoad && onSelectLoad(load)}
                   style={{
-                    padding: "12px 14px",
-                    borderRadius: "12px",
+                    padding: "14px 16px",
+                    borderRadius: "14px",
                     backgroundColor: "var(--bg-tertiary)",
-                    border: "1.5px solid rgba(245, 158, 11, 0.35)",
+                    border: "1.5px solid rgba(245, 158, 11, 0.4)",
                     display: "flex",
                     flexDirection: "column",
-                    gap: "8px",
+                    gap: "10px",
                     cursor: onSelectLoad ? "pointer" : "default",
                     transition: "all 0.15s ease",
                   }}
                 >
-                  {/* Top: Issue & Water Ratio Badges (Focal Point) */}
-                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center" }}>
-                    {conditionIssues.map((issue) => (
+                  {/* Card Header: Truck Identifier, Mix, Batch Number & Timestamp */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "6px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                      <span style={{ fontSize: "1.05rem", fontWeight: "900", color: "var(--text-primary)" }}>
+                        🚛 Truck {load.truckCode}
+                      </span>
+                      {load.batchNumber && (
+                        <span
+                          style={{
+                            fontSize: "0.75rem",
+                            padding: "2px 6px",
+                            borderRadius: "4px",
+                            backgroundColor: "rgba(59, 130, 246, 0.15)",
+                            color: "#3b82f6",
+                            fontWeight: "800",
+                            fontFamily: "Outfit, monospace",
+                          }}
+                        >
+                          #{load.batchNumber}
+                        </span>
+                      )}
+                      <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)", fontWeight: "700" }}>
+                        &bull; {load.mixCode} ({load.quantity} yd³)
+                      </span>
+                    </div>
+
+                    <span style={{ fontSize: "0.76rem", color: "var(--text-muted)", fontWeight: "600" }}>
+                      {load.time}
+                    </span>
+                  </div>
+
+                  {/* Review Flags & Actions Chips */}
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+                    {isDidNotReview && (
                       <span
-                        key={issue}
                         style={{
-                          padding: "4px 9px",
-                          borderRadius: "7px",
-                          fontSize: "0.78rem",
+                          padding: "5px 10px",
+                          borderRadius: "8px",
+                          fontSize: "0.82rem",
                           fontWeight: "800",
                           backgroundColor: "rgba(245, 158, 11, 0.18)",
                           color: "#f59e0b",
                           border: "1px solid rgba(245, 158, 11, 0.4)",
                           display: "flex",
                           alignItems: "center",
-                          gap: "4px",
+                          gap: "5px",
                         }}
                       >
-                        <AlertTriangle size={13} /> {issue}
-                      </span>
-                    ))}
-
-                    {hasWaterTrim && (
-                      <span
-                        style={{
-                          padding: "4px 9px",
-                          borderRadius: "7px",
-                          fontSize: "0.78rem",
-                          fontWeight: "800",
-                          backgroundColor: load.waterAdjustment > 0 ? "rgba(245, 158, 11, 0.18)" : "rgba(59, 130, 246, 0.18)",
-                          color: load.waterAdjustment > 0 ? "#f59e0b" : "#3b82f6",
-                          border: `1px solid ${load.waterAdjustment > 0 ? "rgba(245, 158, 11, 0.35)" : "rgba(59, 130, 246, 0.35)"}`,
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "4px",
-                        }}
-                      >
-                        <Droplet size={13} /> Water Ratio Trim: {load.waterAdjustment > 0 ? `+${load.waterAdjustment}` : load.waterAdjustment} L
+                        <AlertTriangle size={14} /> Did Not Review
                       </span>
                     )}
 
-                    {hasAdjs && load.batchAdjustments.map((adj, idx) => (
+                    {actualIssues.map((issue) => (
                       <span
-                        key={idx}
+                        key={issue}
                         style={{
-                          padding: "4px 9px",
-                          borderRadius: "7px",
-                          fontSize: "0.78rem",
+                          padding: "5px 10px",
+                          borderRadius: "8px",
+                          fontSize: "0.82rem",
                           fontWeight: "800",
-                          backgroundColor: "rgba(139, 92, 246, 0.15)",
-                          color: "#8b5cf6",
-                          border: "1px solid rgba(139, 92, 246, 0.35)",
+                          backgroundColor: "rgba(245, 158, 11, 0.18)",
+                          color: "#f59e0b",
+                          border: "1px solid rgba(245, 158, 11, 0.4)",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "5px",
                         }}
                       >
-                        ⚙️ {adj.label || adj.optionId} {adj.value ? `(${adj.value}${adj.unit || ""})` : ""}
+                        <AlertTriangle size={14} /> {issue}
                       </span>
                     ))}
 
-                    {Boolean(load.actionTaken || (load.actionsTaken && load.actionsTaken.length > 0)) && (
+                    {actionsList.map((action, idx) => (
                       <span
+                        key={idx}
                         style={{
-                          padding: "4px 9px",
-                          borderRadius: "7px",
-                          fontSize: "0.78rem",
+                          padding: "5px 10px",
+                          borderRadius: "8px",
+                          fontSize: "0.82rem",
                           fontWeight: "800",
                           backgroundColor: "rgba(16, 185, 129, 0.18)",
                           color: "#10b981",
                           border: "1px solid rgba(16, 185, 129, 0.35)",
                           display: "flex",
                           alignItems: "center",
-                          gap: "4px",
+                          gap: "5px",
                         }}
                       >
-                        <Wrench size={12} /> Action: {load.actionTaken || load.actionsTaken?.join(", ")}
+                        <Wrench size={13} /> {action.startsWith("Action:") ? action : `Action: ${action}`}
                       </span>
-                    )}
+                    ))}
                   </div>
 
-                  {/* Footer: Timestamp & Click to View Associated Truck */}
+                  {/* Reviewer Remarks & Notes */}
+                  {hasNotes && (
+                    <div
+                      style={{
+                        fontSize: "0.85rem",
+                        color: "var(--text-primary)",
+                        backgroundColor: "rgba(255, 255, 255, 0.04)",
+                        padding: "8px 12px",
+                        borderRadius: "8px",
+                        borderLeft: "3px solid #e05300",
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: "6px",
+                      }}
+                    >
+                      <span style={{ fontSize: "0.95rem", flexShrink: 0 }}>💬</span>
+                      <span style={{ fontStyle: "italic" }}>&ldquo;{load.batcherNotes}&rdquo;</span>
+                    </div>
+                  )}
+
+                  {/* Footer Link */}
                   <div
                     style={{
                       display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: "6px",
+                      justifyContent: "flex-end",
                       paddingTop: "6px",
                       borderTop: "1px solid var(--glass-border)",
                     }}
                   >
-                    <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontWeight: "600" }}>
-                      {load.time}
-                    </span>
-                    <span style={{ fontSize: "0.74rem", color: "#e05300", fontWeight: "700", display: "flex", alignItems: "center", gap: "2px" }}>
+                    <span style={{ fontSize: "0.78rem", color: "#e05300", fontWeight: "800", display: "flex", alignItems: "center", gap: "4px" }}>
                       View Associated Truck →
                     </span>
                   </div>
-
-                  {/* Batcher Remarks if any */}
-                  {hasNotes && (
-                    <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", fontStyle: "italic", backgroundColor: "rgba(255, 255, 255, 0.03)", padding: "6px 10px", borderRadius: "6px" }}>
-                      📝 &ldquo;{load.batcherNotes}&rdquo;
-                    </div>
-                  )}
                 </div>
               );
             })}
