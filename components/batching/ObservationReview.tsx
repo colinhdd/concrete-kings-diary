@@ -307,7 +307,7 @@ export default function ObservationReview({
     }
   };
 
-  // Filter observation options: Exclude hardcoded Stiff/Normal/Too Dry/Too Wet/Other since they are handled via Slump & Notes
+  // Filter observation options: Exclude hardcoded Stiff/Normal/Too Dry/Too Wet/Harsh/Poor Cohesion/Other
   const visualIssueOptions = useMemo(() => {
     return observationOptions.filter((obs) => {
       const l = obs.label.toLowerCase();
@@ -317,6 +317,9 @@ export default function ObservationReview({
         l !== "perfect" &&
         l !== "too dry" &&
         l !== "too wet" &&
+        l !== "harsh" &&
+        l !== "poor cohesion" &&
+        l !== "concrete spilling from truck" &&
         l !== "other"
       );
     });
