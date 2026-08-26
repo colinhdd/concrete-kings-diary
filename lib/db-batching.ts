@@ -1136,6 +1136,8 @@ export async function saveLoad(loadInput: {
   stoneMoisturePercent?: number;
   stoneAbsorptionPercent?: number;
   actualBatchWater: number;
+  expectedBatchWater?: number;
+  designWater?: number;
   actualCement?: number;
   actualSand?: number;
   actualThreeQuarterStone?: number;
@@ -1164,7 +1166,7 @@ export async function saveLoad(loadInput: {
   const sandAbsorption = loadInput.sandAbsorptionPercent ?? 0.5;
   const stoneAbsorption = loadInput.stoneAbsorptionPercent ?? 0.5;
 
-  const { designWaterTotal, expectedBatchWaterL } = calculateExpectedWater(
+  const { designWaterTotal, expectedBatchWaterL: calcExpected } = calculateExpectedWater(
     loadInput.mixDesign,
     loadInput.quantity,
     loadInput.sandMoisturePercent,
@@ -1173,7 +1175,9 @@ export async function saveLoad(loadInput: {
     stoneAbsorption
   );
 
-  const waterAdjustment = Math.round(loadInput.actualBatchWater - expectedBatchWaterL);
+  const finalExpected = loadInput.expectedBatchWater !== undefined ? Number(loadInput.expectedBatchWater) : calcExpected;
+  const finalActual = loadInput.actualBatchWater !== undefined ? Number(loadInput.actualBatchWater) : finalExpected;
+  const waterAdjustment = Math.round(finalActual - finalExpected);
 
   const snapshot: LoadSnapshot = {
     mixCode: loadInput.mixDesign.code,
@@ -1225,9 +1229,9 @@ export async function saveLoad(loadInput: {
     sandAbsorptionPercent: sandAbsorption,
     stoneMoisturePercent: loadInput.stoneMoisturePercent !== undefined ? Number(loadInput.stoneMoisturePercent) : 1.0,
     stoneAbsorptionPercent: stoneAbsorption,
-    designWater: designWaterTotal,
-    expectedBatchWater: expectedBatchWaterL,
-    actualBatchWater: Number(loadInput.actualBatchWater),
+    designWater: loadInput.designWater !== undefined ? Number(loadInput.designWater) : designWaterTotal,
+    expectedBatchWater: finalExpected,
+    actualBatchWater: finalActual,
     waterAdjustment,
     actualCement: loadInput.actualCement !== undefined ? Number(loadInput.actualCement) : Math.round(loadInput.mixDesign.cement * loadInput.quantity),
     actualSand: loadInput.actualSand !== undefined ? Number(loadInput.actualSand) : undefined,

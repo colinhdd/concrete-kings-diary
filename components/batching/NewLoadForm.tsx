@@ -172,14 +172,6 @@ export default function NewLoadForm({
     initialValues?.quantity ? Number(initialValues.quantity) : 10.0
   );
 
-  // 4. Water inputs
-  const [actualWaterInput, setActualWaterInput] = useState<string>(
-    initialValues?.actualBatchWater ? String(initialValues.actualBatchWater) : ""
-  );
-  const [isWaterAutoPopulated, setIsWaterAutoPopulated] = useState<boolean>(
-    Boolean(initialValues?.actualBatchWater)
-  );
-
   // Active mix design object
   const activeMix = useMemo(() => {
     return mixDesigns.find((m) => m.id === selectedMixId) || mixDesigns[0] || null;
@@ -290,10 +282,6 @@ export default function NewLoadForm({
   // Handler for changing Mix Design -> carries over adjustments if this mix was already tuned on this job
   const handleMixChange = (newMixId: string) => {
     setSelectedMixId(newMixId);
-    setActualWaterInput("");
-    setIsWaterAutoPopulated(false);
-    setActualSandInput("");
-    setIsSandAutoPopulated(false);
 
     if (initialValues?.id) return; // Don't auto-override in edit mode
 
@@ -385,34 +373,13 @@ export default function NewLoadForm({
   const targetAddedWaterExact = Math.max(0, theoreticalDesignWater - totalWaterInAggregates);
   const expectedBatchWaterL = Math.floor(targetAddedWaterExact / 50) * 50;
 
-  useEffect(() => {
-    if (expectedBatchWaterL > 0 && (!actualWaterInput || !isWaterAutoPopulated)) {
-      setActualWaterInput(String(expectedBatchWaterL));
-      setIsWaterAutoPopulated(true);
-    }
-  }, [expectedBatchWaterL, actualWaterInput, isWaterAutoPopulated]);
+  const actualWaterNum = expectedBatchWaterL;
+  const waterTruckAdjustment = 0;
 
-  const actualWaterNum = parseFloat(actualWaterInput) || expectedBatchWaterL;
-  const waterTruckAdjustment = Math.round(actualWaterNum - expectedBatchWaterL);
+  const actualSandNum = targetTruckSand;
+  const sandTruckAdjustment = 0;
 
-  // Full truck actual sand input
-  const [actualSandInput, setActualSandInput] = useState<string>(
-    initialValues?.actualSand ? String(initialValues.actualSand) : ""
-  );
-  const [isSandAutoPopulated, setIsSandAutoPopulated] = useState<boolean>(
-    Boolean(initialValues?.actualSand)
-  );
-
-  useEffect(() => {
-    if (targetTruckSand > 0 && (!actualSandInput || !isSandAutoPopulated)) {
-      setActualSandInput(String(targetTruckSand));
-      setIsSandAutoPopulated(true);
-    }
-  }, [targetTruckSand, actualSandInput, isSandAutoPopulated]);
-
-  const actualSandNum = parseFloat(actualSandInput) || targetTruckSand;
-  const sandTruckAdjustment = Math.round(actualSandNum - targetTruckSand);
-
+  // Full Mix Formulation Physics Engine (integrating per-yard computer rates + full-truck water/sand/stone)
   // Full Mix Formulation Physics Engine (integrating per-yard computer rates + full-truck water/sand/stone)
   const batchPhysics = useMemo(() => {
     if (!activeMix) return null;
@@ -429,11 +396,11 @@ export default function NewLoadForm({
         waterPerYard: waterAdjPerYard,
         plasticizerPerYard: plasticizerAdjPerYard,
         retarderPerYard: retarderAdjPerYard,
-        waterTruck: actualWaterInput ? (parseFloat(actualWaterInput) || 0) - expectedBatchWaterL : 0,
-        sandTruck: actualSandInput ? (parseFloat(actualSandInput) || 0) - targetTruckSand : 0,
+        waterTruck: 0,
+        sandTruck: 0,
       },
     });
-  }, [activeMix, quantity, sandMoisturePct, stoneMoisturePct, cementAdjPerYard, sandAdjPerYard, stoneAdjPerYard, stone38AdjPerYard, waterAdjPerYard, plasticizerAdjPerYard, retarderAdjPerYard, actualWaterInput, actualSandInput, expectedBatchWaterL, targetTruckSand]);
+  }, [activeMix, quantity, sandMoisturePct, stoneMoisturePct, cementAdjPerYard, sandAdjPerYard, stoneAdjPerYard, stone38AdjPerYard, waterAdjPerYard, plasticizerAdjPerYard, retarderAdjPerYard]);
 
   // 5. Observations (Mandatory - Default to "Perfect" for speed)
   const [selectedObs, setSelectedObs] = useState<string[]>(
@@ -456,20 +423,6 @@ export default function NewLoadForm({
   const [warningModalOpen, setWarningModalOpen] = useState<boolean>(false);
   const [pendingWarningMessage, setPendingWarningMessage] = useState<string>("");
   const [isSaving, setIsSaving] = useState<boolean>(false);
-
-  // Step actual water (full truck, multiples of 50 L)
-  const handleWaterStep = (delta: number) => {
-    const curr = parseFloat(actualWaterInput) || expectedBatchWaterL;
-    const next = Math.max(0, Math.round((curr + delta) / 50) * 50);
-    setActualWaterInput(String(next));
-  };
-
-  // Step actual sand (full truck moisture compensation)
-  const handleSandTruckStep = (delta: number) => {
-    const curr = parseFloat(actualSandInput) || targetTruckSand;
-    const next = Math.max(0, curr + delta);
-    setActualSandInput(String(next));
-  };
 
   // Toggle observation with "Perfect" exclusivity
   const handleToggleObservation = (label: string, isNormalOption: boolean) => {
@@ -676,6 +629,8 @@ export default function NewLoadForm({
             sandMoisturePercent: sandMoisturePct,
             stoneMoisturePercent: stoneMoisturePct,
             actualBatchWater: actualWaterNum,
+            expectedBatchWater: expectedBatchWaterL,
+            designWater: theoreticalDesignWater,
             actualCement: totalCementBatchKg,
             actualSand: actualSandNum,
             actualThreeQuarterStone: totalStoneBatchKg,
@@ -715,6 +670,8 @@ export default function NewLoadForm({
           sandMoisturePercent: sandMoisturePct,
           stoneMoisturePercent: stoneMoisturePct,
           actualBatchWater: actualWaterNum,
+          expectedBatchWater: expectedBatchWaterL,
+          designWater: theoreticalDesignWater,
           actualCement: totalCementBatchKg,
           actualSand: actualSandNum,
           actualThreeQuarterStone: totalStoneBatchKg,
