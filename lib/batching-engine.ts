@@ -54,7 +54,7 @@ export interface PantrySpecificGravities {
   waterSG?: number; // default 1.00
   plasticizerSG?: number; // default 1.05
   retarderSG?: number; // default 1.15
-  airTargetPct?: number; // default 1.8%
+  airTargetPct?: number; // default 1.0%
 }
 
 export interface CementCOAProfile {
@@ -101,7 +101,7 @@ export const DEFAULT_PANTRY_SG: Required<PantrySpecificGravities> = {
   waterSG: 1.00,
   plasticizerSG: 1.05,
   retarderSG: 1.15,
-  airTargetPct: 1.8,
+  airTargetPct: 1.0,
 };
 
 export interface BatchCalculationInput {
