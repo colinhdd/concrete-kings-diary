@@ -380,7 +380,6 @@ export default function NewLoadForm({
   const sandTruckAdjustment = 0;
 
   // Full Mix Formulation Physics Engine (integrating per-yard computer rates + full-truck water/sand/stone)
-  // Full Mix Formulation Physics Engine (integrating per-yard computer rates + full-truck water/sand/stone)
   const batchPhysics = useMemo(() => {
     if (!activeMix) return null;
     return calculateBatchFormulation({
