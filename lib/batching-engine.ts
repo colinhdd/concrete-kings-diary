@@ -47,14 +47,14 @@ export interface MaterialAdjustments {
 }
 
 export interface PantrySpecificGravities {
-  cementSG?: number; // default 3.15 (Carib Cement / ASTM C150 Type I)
-  sandSG?: number; // default 2.62 (Natural siliceous / river sand)
-  s34SG?: number; // default 2.65 (Crushed limestone 3/4")
-  s38SG?: number; // default 2.65 (Crushed limestone 3/8")
-  waterSG?: number; // default 1.00
-  plasticizerSG?: number; // default 1.05
-  retarderSG?: number; // default 1.15
-  airTargetPct?: number; // default 1.0%
+  cementSG?: number; // default 3.15 (CEMEX Local/Imported HE)
+  sandSG?: number; // default 2.65 (SAND-01 Burnish washed sand)
+  s34SG?: number; // default 2.95 (STONE-34 Burnish crushed 3/4" aggregate)
+  s38SG?: number; // default 2.98 (STONE-38 Burnish small 3/8" aggregate)
+  waterSG?: number; // default 1.00 (Mixing water)
+  plasticizerSG?: number; // default 1.10 (DYNAplas PC 5-21)
+  retarderSG?: number; // default 1.16 (DYNAplas R-350BD)
+  airTargetPct?: number; // default 1.0% (Entrapped air)
 }
 
 export interface CementCOAProfile {
@@ -95,12 +95,12 @@ export const DEFAULT_CEMENT_COAS: Record<string, CementCOAProfile> = {
 
 export const DEFAULT_PANTRY_SG: Required<PantrySpecificGravities> = {
   cementSG: 3.15,
-  sandSG: 2.62,
-  s34SG: 2.65,
-  s38SG: 2.65,
+  sandSG: 2.65,
+  s34SG: 2.95,
+  s38SG: 2.98,
   waterSG: 1.00,
-  plasticizerSG: 1.05,
-  retarderSG: 1.15,
+  plasticizerSG: 1.10,
+  retarderSG: 1.16,
   airTargetPct: 1.0,
 };
 
