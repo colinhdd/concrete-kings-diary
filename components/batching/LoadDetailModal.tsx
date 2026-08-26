@@ -31,6 +31,7 @@ interface LoadDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   onLoadUpdated: (updated: LoadRecord) => void;
+  onEditLoad?: (load: LoadRecord) => void;
   batcherName?: string;
   batcherId?: string;
 }
@@ -40,84 +41,24 @@ export default function LoadDetailModal({
   isOpen,
   onClose,
   onLoadUpdated,
+  onEditLoad,
   batcherName = "Lead Batcher",
   batcherId = "batcher_01",
 }: LoadDetailModalProps) {
   const [auditHistory, setAuditHistory] = useState<AuditRecord[]>([]);
-  const [isEditing, setIsEditing] = useState(false);
   const [isVoiding, setIsVoiding] = useState(false);
   const [voidReason, setVoidReason] = useState("");
-  const [editReason, setEditReason] = useState("");
-
-  // Edit form fields
-  const [editActualWater, setEditActualWater] = useState<string>("");
-  const [editObservations, setEditObservations] = useState<string>("");
-  const [editNotes, setEditNotes] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (load && isOpen) {
       getAuditTrailForLoad(load.id).then(setAuditHistory);
-      setEditActualWater(String(load.actualBatchWater));
-      setEditObservations(
-        Array.isArray(load.concreteObservations)
-          ? load.concreteObservations.join(", ")
-          : String(load.concreteObservations || "")
-      );
-      setEditNotes(load.batcherNotes || "");
-      setIsEditing(false);
       setIsVoiding(false);
       setVoidReason("");
-      setEditReason("");
     }
   }, [load, isOpen]);
 
   if (!isOpen || !load) return null;
-
-  const handleSaveEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editReason.trim()) {
-      alert("Please provide a reason for correcting this load record for the audit log.");
-      return;
-    }
-
-    const newActualWater = parseFloat(editActualWater);
-    if (isNaN(newActualWater) || newActualWater <= 0) {
-      alert("Please enter a valid actual water quantity.");
-      return;
-    }
-
-    try {
-      setIsSaving(true);
-      const parsedObs = editObservations
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean);
-
-      const updated = await updateLoad(
-        load.id,
-        {
-          actualBatchWater: newActualWater,
-          concreteObservations: parsedObs,
-          batcherNotes: editNotes,
-        },
-        batcherName,
-        batcherId,
-        editReason
-      );
-
-      if (updated) {
-        onLoadUpdated(updated);
-        const newAudits = await getAuditTrailForLoad(load.id);
-        setAuditHistory(newAudits);
-        setIsEditing(false);
-      }
-    } catch (err: any) {
-      alert(`Failed to update load: ${err.message}`);
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   const handleConfirmVoid = async () => {
     if (!voidReason.trim()) {
@@ -315,66 +256,8 @@ export default function LoadDetailModal({
             </div>
           </div>
 
-          {/* EDIT FORM (if editing) */}
-          {isEditing ? (
-            <form onSubmit={handleSaveEdit} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              <div style={{ fontSize: "0.95rem", fontWeight: "700", color: "#e05300" }}>
-                Correct Batch Record
-              </div>
-              <div className="form-group">
-                <label>Actual Water Added (L)</label>
-                <input
-                  type="number"
-                  className="form-input"
-                  required
-                  value={editActualWater}
-                  onChange={(e) => setEditActualWater(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label>Concrete Observations (comma separated)</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  value={editObservations}
-                  onChange={(e) => setEditObservations(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label>Batcher Notes</label>
-                <textarea
-                  className="form-textarea"
-                  rows={2}
-                  value={editNotes}
-                  onChange={(e) => setEditNotes(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label style={{ color: "#ef4444" }}>Audit Correction Reason *</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  required
-                  placeholder="e.g. Corrected actual water typo from flowmeter reading"
-                  value={editReason}
-                  onChange={(e) => setEditReason(e.target.value)}
-                />
-              </div>
-              <div className="modal-actions">
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() => setIsEditing(false)}
-                  disabled={isSaving}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="btn-primary" disabled={isSaving}>
-                  <Check size={16} /> {isSaving ? "Saving..." : "Save Corrections"}
-                </button>
-              </div>
-            </form>
-          ) : isVoiding ? (
+          {/* VOID CONFIRMATION (if voiding) */}
+          {isVoiding ? (
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               <div style={{ fontSize: "0.95rem", fontWeight: "700", color: "#ef4444" }}>
                 Void Load Record
@@ -727,10 +610,15 @@ export default function LoadDetailModal({
                   <button
                     type="button"
                     className="btn-secondary"
-                    onClick={() => setIsEditing(true)}
+                    onClick={() => {
+                      onClose();
+                      if (onEditLoad) {
+                        onEditLoad(load);
+                      }
+                    }}
                     style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
                   >
-                    <Edit3 size={16} /> Edit / Correct
+                    <Edit3 size={16} /> Edit / Re-batch
                   </button>
                   <button
                     type="button"

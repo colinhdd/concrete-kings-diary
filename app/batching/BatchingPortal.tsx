@@ -279,6 +279,12 @@ export default function BatchingPortal() {
     setActiveTab("new-load");
   };
 
+  const handleEditLoadFromDetail = (load: LoadRecord) => {
+    setSelectedLoadForDetail(null);
+    setRepeatLoadData(load);
+    setActiveTab("new-load");
+  };
+
   const handleLoadSaved = async (newLoad: LoadRecord) => {
     await refreshLocalData();
     setActiveTab("home");
@@ -608,6 +614,7 @@ export default function BatchingPortal() {
         load={selectedLoadForDetail}
         onClose={() => setSelectedLoadForDetail(null)}
         onLoadUpdated={handleLoadUpdated}
+        onEditLoad={handleEditLoadFromDetail}
         batcherName={batchingDay?.batcherName || "Lead Batcher"}
         batcherId={batchingDay?.batcherId || "batcher_01"}
       />

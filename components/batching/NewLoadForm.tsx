@@ -33,6 +33,7 @@ import {
   calculateExpectedWater,
   generateBatchNumber,
   saveLoad,
+  updateLoad,
   saveTruck,
   LoadRecord,
 } from "@/lib/db-batching";
@@ -133,8 +134,12 @@ export default function NewLoadForm({
   );
 
   // 4. Water inputs
-  const [actualWaterInput, setActualWaterInput] = useState<string>("");
-  const [isWaterAutoPopulated, setIsWaterAutoPopulated] = useState<boolean>(false);
+  const [actualWaterInput, setActualWaterInput] = useState<string>(
+    initialValues?.actualBatchWater ? String(initialValues.actualBatchWater) : ""
+  );
+  const [isWaterAutoPopulated, setIsWaterAutoPopulated] = useState<boolean>(
+    Boolean(initialValues?.actualBatchWater)
+  );
 
   // Active mix design object
   const activeMix = useMemo(() => {
@@ -253,8 +258,12 @@ export default function NewLoadForm({
   const waterTruckAdjustment = Math.round(actualWaterNum - expectedBatchWaterL);
 
   // Full truck actual sand input
-  const [actualSandInput, setActualSandInput] = useState<string>("");
-  const [isSandAutoPopulated, setIsSandAutoPopulated] = useState<boolean>(false);
+  const [actualSandInput, setActualSandInput] = useState<string>(
+    initialValues?.actualSand ? String(initialValues.actualSand) : ""
+  );
+  const [isSandAutoPopulated, setIsSandAutoPopulated] = useState<boolean>(
+    Boolean(initialValues?.actualSand)
+  );
 
   useEffect(() => {
     if (targetTruckSand > 0 && (!actualSandInput || !isSandAutoPopulated)) {
@@ -289,14 +298,20 @@ export default function NewLoadForm({
   }, [activeMix, quantity, sandMoisturePct, stoneMoisturePct, cementAdjPerYard, sandAdjPerYard, stoneAdjPerYard, stone38AdjPerYard, waterAdjPerYard, plasticizerAdjPerYard, retarderAdjPerYard, actualWaterInput, actualSandInput, expectedBatchWaterL, targetTruckSand]);
 
   // 5. Observations (Mandatory - Default to "Perfect" for speed)
-  const [selectedObs, setSelectedObs] = useState<string[]>(["Perfect"]);
+  const [selectedObs, setSelectedObs] = useState<string[]>(
+    Array.isArray(initialValues?.concreteObservations) && initialValues.concreteObservations.length > 0
+      ? initialValues.concreteObservations
+      : ["Perfect"]
+  );
   const [customObsText, setCustomObsText] = useState<string>("");
 
   // 6. Adjustments
-  const [adjustments, setAdjustments] = useState<SelectedAdjustment[]>([]);
+  const [adjustments, setAdjustments] = useState<SelectedAdjustment[]>(
+    Array.isArray(initialValues?.batchAdjustments) ? initialValues.batchAdjustments : []
+  );
 
   // 7. Notes
-  const [notes, setNotes] = useState<string>("");
+  const [notes, setNotes] = useState<string>(initialValues?.batcherNotes || "");
   const [isListeningSpeech, setIsListeningSpeech] = useState<boolean>(false);
 
   // Validation & Saving
@@ -509,31 +524,65 @@ export default function NewLoadForm({
         });
       }
 
-      const saved = await saveLoad({
-        batchingDayId: batchingDay.id,
-        batcherId: batchingDay.batcherId,
-        batcherName: batchingDay.batcherName,
-        plantId: batchingDay.plantId,
-        plantName: batchingDay.plantName,
-        truckId: activeTruck.id,
-        truckCode: activeTruck.code,
-        mixDesign: activeMix,
-        quantity: quantity,
-        sandMoisturePercent: sandMoisturePct,
-        stoneMoisturePercent: stoneMoisturePct,
-        actualBatchWater: actualWaterNum,
-        actualCement: totalCementBatchKg,
-        actualSand: actualSandNum,
-        actualThreeQuarterStone: totalStoneBatchKg,
-        actualThreeEighthStone: totalStone38BatchKg,
-        actualPlasticizer: totalPlasticizerBatchOz,
-        actualRetarder: totalRetarderBatchOz,
-        concreteObservations: allObs.length > 0 ? allObs : ["Perfect"],
-        batchAdjustments: allAdjustments,
-        batcherNotes: notes.trim(),
-        batchNumber: currentBatchNumber,
-        jobCode: jobCode,
-      });
+      let saved: LoadRecord | null = null;
+      if (initialValues?.id) {
+        saved = await updateLoad(
+          initialValues.id,
+          {
+            truckId: activeTruck.id,
+            truckCode: activeTruck.code,
+            mixDesignId: activeMix.id,
+            mixCode: activeMix.code,
+            mixDesignVersion: activeMix.version || 1,
+            quantity: quantity,
+            sandMoisturePercent: sandMoisturePct,
+            stoneMoisturePercent: stoneMoisturePct,
+            actualBatchWater: actualWaterNum,
+            actualCement: totalCementBatchKg,
+            actualSand: actualSandNum,
+            actualThreeQuarterStone: totalStoneBatchKg,
+            actualThreeEighthStone: totalStone38BatchKg,
+            actualPlasticizer: totalPlasticizerBatchOz,
+            actualRetarder: totalRetarderBatchOz,
+            concreteObservations: allObs.length > 0 ? allObs : ["Perfect"],
+            batchAdjustments: allAdjustments,
+            batcherNotes: notes.trim(),
+            batchNumber: initialValues.batchNumber || currentBatchNumber,
+            jobCode: jobCode,
+          },
+          batchingDay.batcherName,
+          batchingDay.batcherId,
+          "Edited / re-batched in batching form"
+        );
+      }
+
+      if (!saved) {
+        saved = await saveLoad({
+          batchingDayId: batchingDay.id,
+          batcherId: batchingDay.batcherId,
+          batcherName: batchingDay.batcherName,
+          plantId: batchingDay.plantId,
+          plantName: batchingDay.plantName,
+          truckId: activeTruck.id,
+          truckCode: activeTruck.code,
+          mixDesign: activeMix,
+          quantity: quantity,
+          sandMoisturePercent: sandMoisturePct,
+          stoneMoisturePercent: stoneMoisturePct,
+          actualBatchWater: actualWaterNum,
+          actualCement: totalCementBatchKg,
+          actualSand: actualSandNum,
+          actualThreeQuarterStone: totalStoneBatchKg,
+          actualThreeEighthStone: totalStone38BatchKg,
+          actualPlasticizer: totalPlasticizerBatchOz,
+          actualRetarder: totalRetarderBatchOz,
+          concreteObservations: allObs.length > 0 ? allObs : ["Perfect"],
+          batchAdjustments: allAdjustments,
+          batcherNotes: notes.trim(),
+          batchNumber: currentBatchNumber,
+          jobCode: jobCode,
+        });
+      }
 
       onLoadSaved(saved);
     } catch (err: any) {
@@ -604,16 +653,16 @@ export default function NewLoadForm({
               className="btn-secondary"
               style={{ padding: "8px 12px", display: "flex", alignItems: "center", gap: "6px", fontSize: "0.85rem" }}
             >
-              <ArrowLeft size={16} /> {currentStep === 1 ? "Exit" : "Back"}
+              <ArrowLeft size={16} /> {currentStep === 1 ? (initialValues?.id ? "Cancel Edit" : "Exit") : "Back"}
             </button>
             <h2 style={{ margin: 0, fontSize: "1.25rem", color: "var(--text-primary)", fontWeight: "800" }}>
-              New Batching Load
+              {initialValues?.id ? "Edit Batched Load" : "New Batching Load"}
             </h2>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
             <span className="badge synced" style={{ fontSize: "0.85rem", fontWeight: "800", letterSpacing: "0.02em" }}>
-              Batch #{currentBatchNumber}
+              Batch #{initialValues?.batchNumber || currentBatchNumber}
             </span>
             {activeTruck?.code && (
               <span
@@ -648,6 +697,42 @@ export default function NewLoadForm({
             </span>
           </div>
         </div>
+
+        {initialValues?.id && (
+          <div
+            style={{
+              padding: "12px 16px",
+              borderRadius: "12px",
+              backgroundColor: "rgba(59, 130, 246, 0.12)",
+              border: "1.5px solid rgba(59, 130, 246, 0.35)",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "8px",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <span style={{ fontSize: "1.2rem" }}>✏️</span>
+              <div>
+                <strong style={{ color: "var(--text-primary)", fontSize: "0.92rem" }}>
+                  Editing Batch #{initialValues.batchNumber || initialValues.id}
+                </strong>
+                <div style={{ fontSize: "0.78rem", color: "var(--text-secondary)" }}>
+                  Prepopulated with recorded batch info. Make changes and confirm to update record.
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onCancel}
+              className="btn-secondary"
+              style={{ padding: "6px 14px", fontSize: "0.8rem", fontWeight: "700" }}
+            >
+              Cancel Edit
+            </button>
+          </div>
+        )}
 
         {/* Step Navigation Pills */}
         <div
@@ -1742,7 +1827,7 @@ export default function NewLoadForm({
                 boxShadow: "0 8px 25px rgba(224, 83, 0, 0.4)",
               }}
             >
-              <Save size={22} /> {isSaving ? "Saving..." : "CONFIRM & LOG BATCH"}
+              <Save size={22} /> {isSaving ? "Saving..." : initialValues?.id ? "UPDATE & SAVE BATCH" : "CONFIRM & LOG BATCH"}
             </button>
           </div>
         </div>
