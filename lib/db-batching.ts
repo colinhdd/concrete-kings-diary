@@ -155,6 +155,13 @@ export interface LoadRecord {
   concreteObservations: string[]; // array of observation labels
   observedSlumpInches?: number; // Assumed or observed slump (e.g. 4.5 in)
   batchAdjustments: SelectedAdjustment[];
+  stoneAdjPerYard?: number;
+  stone38AdjPerYard?: number;
+  sandAdjPerYard?: number;
+  cementAdjPerYard?: number;
+  waterAdjPerYard?: number;
+  plasticizerAdjPerYard?: number;
+  retarderAdjPerYard?: number;
   batcherNotes: string;
   actionTaken?: string; // What was done (e.g. "Fixed at plant, some was run out")
   actionsTaken?: string[]; // Array of resolution action tags
@@ -1137,6 +1144,13 @@ export async function saveLoad(loadInput: {
   actualRetarder?: number;
   concreteObservations: string[];
   batchAdjustments: SelectedAdjustment[];
+  stoneAdjPerYard?: number;
+  stone38AdjPerYard?: number;
+  sandAdjPerYard?: number;
+  cementAdjPerYard?: number;
+  waterAdjPerYard?: number;
+  plasticizerAdjPerYard?: number;
+  retarderAdjPerYard?: number;
   batcherNotes?: string;
   batchNumber?: string;
   jobCode?: string;
@@ -1192,6 +1206,7 @@ export async function saveLoad(loadInput: {
   const load: LoadRecord = {
     id: loadId,
     batchNumber: finalBatchNumber,
+    jobCode: loadInput.jobCode,
     batchingDayId: loadInput.batchingDayId,
     date: todayStr,
     time: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
@@ -1222,6 +1237,13 @@ export async function saveLoad(loadInput: {
     actualRetarder: loadInput.actualRetarder !== undefined ? Number(loadInput.actualRetarder) : Math.round((loadInput.mixDesign.retarder || 0) * loadInput.quantity),
     concreteObservations: loadInput.concreteObservations,
     batchAdjustments: loadInput.batchAdjustments,
+    stoneAdjPerYard: loadInput.stoneAdjPerYard ?? 0,
+    stone38AdjPerYard: loadInput.stone38AdjPerYard ?? 0,
+    sandAdjPerYard: loadInput.sandAdjPerYard ?? 0,
+    cementAdjPerYard: loadInput.cementAdjPerYard ?? 0,
+    waterAdjPerYard: loadInput.waterAdjPerYard ?? 0,
+    plasticizerAdjPerYard: loadInput.plasticizerAdjPerYard ?? 0,
+    retarderAdjPerYard: loadInput.retarderAdjPerYard ?? 0,
     batcherNotes: loadInput.batcherNotes || "",
     isReviewed: false,
     snapshot,
@@ -1633,3 +1655,63 @@ export async function syncBatchingDataToCloud(): Promise<{
     };
   }
 }
+
+/**
+ * Extracts per-yard adjustments from a LoadRecord (from explicit columns or batchAdjustments array)
+ */
+export function extractLoadAdjustments(load: Partial<LoadRecord> | null | undefined) {
+  if (!load) {
+    return {
+      stoneAdjPerYard: 0,
+      stone38AdjPerYard: 0,
+      sandAdjPerYard: 0,
+      cementAdjPerYard: 0,
+      waterAdjPerYard: 0,
+      plasticizerAdjPerYard: 0,
+      retarderAdjPerYard: 0,
+      hasAdjustments: false,
+    };
+  }
+
+  let stoneAdj = load.stoneAdjPerYard ?? 0;
+  let stone38Adj = load.stone38AdjPerYard ?? 0;
+  let sandAdj = load.sandAdjPerYard ?? 0;
+  let cementAdj = load.cementAdjPerYard ?? 0;
+  let waterAdj = load.waterAdjPerYard ?? 0;
+  let plasticizerAdj = load.plasticizerAdjPerYard ?? 0;
+  let retarderAdj = load.retarderAdjPerYard ?? 0;
+
+  if (Array.isArray(load.batchAdjustments)) {
+    for (const adj of load.batchAdjustments) {
+      const val = typeof adj.value === "number" ? adj.value : parseFloat(String(adj.value || "0")) || 0;
+      if (adj.optionId === "adj_stone_rate" && stoneAdj === 0) stoneAdj = val;
+      if (adj.optionId === "adj_stone38_rate" && stone38Adj === 0) stone38Adj = val;
+      if (adj.optionId === "adj_sand_rate" && sandAdj === 0) sandAdj = val;
+      if (adj.optionId === "adj_cement_rate" && cementAdj === 0) cementAdj = val;
+      if (adj.optionId === "adj_design_water_rate" && waterAdj === 0) waterAdj = val;
+      if (adj.optionId === "adj_plasticizer_rate" && plasticizerAdj === 0) plasticizerAdj = val;
+      if (adj.optionId === "adj_retarder_rate" && retarderAdj === 0) retarderAdj = val;
+    }
+  }
+
+  const hasAdjustments =
+    stoneAdj !== 0 ||
+    stone38Adj !== 0 ||
+    sandAdj !== 0 ||
+    cementAdj !== 0 ||
+    waterAdj !== 0 ||
+    plasticizerAdj !== 0 ||
+    retarderAdj !== 0;
+
+  return {
+    stoneAdjPerYard: stoneAdj,
+    stone38AdjPerYard: stone38Adj,
+    sandAdjPerYard: sandAdj,
+    cementAdjPerYard: cementAdj,
+    waterAdjPerYard: waterAdj,
+    plasticizerAdjPerYard: plasticizerAdj,
+    retarderAdjPerYard: retarderAdj,
+    hasAdjustments,
+  };
+}
+

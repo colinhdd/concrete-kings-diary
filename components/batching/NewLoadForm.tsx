@@ -36,6 +36,7 @@ import {
   updateLoad,
   saveTruck,
   LoadRecord,
+  extractLoadAdjustments,
 } from "@/lib/db-batching";
 import { calculateBatchFormulation } from "@/lib/batching-engine";
 
@@ -76,11 +77,42 @@ export default function NewLoadForm({
   initialValues,
   todaysLoads,
 }: NewLoadFormProps) {
-  // Current Wizard Step (1 - 5)
+  // Current Wizard Step (1 - 3)
   const [currentStep, setCurrentStep] = useState<number>(1);
 
+  // Helper to find previous load matching a job code and optional mix
+  const findPreviousLoadForJob = (job: string, mixId?: string): LoadRecord | null => {
+    if (!todaysLoads || todaysLoads.length === 0) return null;
+    const cleanJob = (job || "").trim().toUpperCase();
+    if (!cleanJob) return null;
+
+    // 1. Exact job + mix match
+    if (mixId) {
+      const match = todaysLoads.find(
+        (l) =>
+          !l.isVoid &&
+          l.mixDesignId === mixId &&
+          ((l.jobCode && l.jobCode.toUpperCase() === cleanJob) ||
+            (l.batchNumber && l.batchNumber.split("-").slice(3, -1).join("-").toUpperCase() === cleanJob) ||
+            (l.batchNumber && l.batchNumber.includes(`-${cleanJob}-`)))
+      );
+      if (match) return match;
+    }
+
+    // 2. Any previous load on this job
+    const matchJob = todaysLoads.find(
+      (l) =>
+        !l.isVoid &&
+        ((l.jobCode && l.jobCode.toUpperCase() === cleanJob) ||
+          (l.batchNumber && l.batchNumber.split("-").slice(3, -1).join("-").toUpperCase() === cleanJob) ||
+          (l.batchNumber && l.batchNumber.includes(`-${cleanJob}-`)))
+    );
+    if (matchJob) return matchJob;
+
+    return null;
+  };
+
   // Job / Batch Number tracking (Format: YEAR-MM-DD-JJ)
-  // Auto-populate with '01' if first log of the day, or repeat the previous job number used.
   const defaultJobCode = useMemo(() => {
     if (initialValues) {
       if ((initialValues as any).jobCode) return String((initialValues as any).jobCode);
@@ -123,10 +155,17 @@ export default function NewLoadForm({
   );
   const [manualTruckCode, setManualTruckCode] = useState<string>("");
 
-  // 2. Mix design selection
-  const [selectedMixId, setSelectedMixId] = useState<string>(
-    initialValues?.mixDesignId || (mixDesigns.length > 0 ? mixDesigns[0].id : "")
-  );
+  // 2. Mix design selection (defaults to last mix used on this job)
+  const defaultMixId = useMemo(() => {
+    if (initialValues?.mixDesignId) return initialValues.mixDesignId;
+    const prev = findPreviousLoadForJob(defaultJobCode);
+    if (prev?.mixDesignId && mixDesigns.some((m) => m.id === prev.mixDesignId)) {
+      return prev.mixDesignId;
+    }
+    return mixDesigns.length > 0 ? mixDesigns[0].id : "";
+  }, [initialValues, defaultJobCode, todaysLoads, mixDesigns]);
+
+  const [selectedMixId, setSelectedMixId] = useState<string>(() => defaultMixId);
 
   // 3. Quantity (yards)
   const [quantity, setQuantity] = useState<number>(
@@ -167,29 +206,128 @@ export default function NewLoadForm({
   const sandMoisturePct = currentSandMoisture ? currentSandMoisture.percentage : (currentMoisture?.percentage ?? 3.0);
   const stoneMoisturePct = currentStoneMoisture ? currentStoneMoisture.percentage : 1.0;
 
-  // ── 1. Per-Yard Material Adjustments (Entered into plant batch computer) ──
-  const [stoneAdjPerYard, setStoneAdjPerYard] = useState<number>(0);
-  const [stone38AdjPerYard, setStone38AdjPerYard] = useState<number>(0);
-  const [sandAdjPerYard, setSandAdjPerYard] = useState<number>(0);
-  const [cementAdjPerYard, setCementAdjPerYard] = useState<number>(0);
-  const [waterAdjPerYard, setWaterAdjPerYard] = useState<number>(0); // Design Water is adjustable
-  const [plasticizerAdjPerYard, setPlasticizerAdjPerYard] = useState<number>(0); // Plasticizer is adjustable
-  const [retarderAdjPerYard, setRetarderAdjPerYard] = useState<number>(0); // Retarder is adjustable
+  // ── Initial Material Adjustments Computation (Carried over from prior truck on this job/mix) ──
+  const initialAdjustments = useMemo(() => {
+    if (initialValues) {
+      return extractLoadAdjustments(initialValues);
+    }
+    const prev = findPreviousLoadForJob(defaultJobCode, defaultMixId);
+    if (prev) {
+      return extractLoadAdjustments(prev);
+    }
+    return extractLoadAdjustments(null);
+  }, [initialValues, defaultJobCode, defaultMixId, todaysLoads]);
 
-  // When mix design changes, reset custom material adjustments to prefill new mix's numbers
-  useEffect(() => {
-    setStoneAdjPerYard(0);
-    setStone38AdjPerYard(0);
-    setSandAdjPerYard(0);
-    setCementAdjPerYard(0);
-    setWaterAdjPerYard(0);
-    setPlasticizerAdjPerYard(0);
-    setRetarderAdjPerYard(0);
+  // ── 1. Per-Yard Material Adjustments (Entered into plant batch computer) ──
+  const [stoneAdjPerYard, setStoneAdjPerYard] = useState<number>(() => initialAdjustments.stoneAdjPerYard);
+  const [stone38AdjPerYard, setStone38AdjPerYard] = useState<number>(() => initialAdjustments.stone38AdjPerYard);
+  const [sandAdjPerYard, setSandAdjPerYard] = useState<number>(() => initialAdjustments.sandAdjPerYard);
+  const [cementAdjPerYard, setCementAdjPerYard] = useState<number>(() => initialAdjustments.cementAdjPerYard);
+  const [waterAdjPerYard, setWaterAdjPerYard] = useState<number>(() => initialAdjustments.waterAdjPerYard);
+  const [plasticizerAdjPerYard, setPlasticizerAdjPerYard] = useState<number>(() => initialAdjustments.plasticizerAdjPerYard);
+  const [retarderAdjPerYard, setRetarderAdjPerYard] = useState<number>(() => initialAdjustments.retarderAdjPerYard);
+
+  // Carry-over provenance tracking for user visibility banner
+  const [carriedOverFrom, setCarriedOverFrom] = useState<{
+    truckCode?: string;
+    batchNumber?: string;
+    mixCode?: string;
+    jobCode?: string;
+  } | null>(() => {
+    if (initialValues?.id) return null;
+    const prev = findPreviousLoadForJob(defaultJobCode, defaultMixId);
+    if (prev && initialAdjustments.hasAdjustments) {
+      return {
+        truckCode: prev.truckCode,
+        batchNumber: prev.batchNumber,
+        mixCode: prev.mixCode,
+        jobCode: prev.jobCode || defaultJobCode,
+      };
+    }
+    return null;
+  });
+
+  // Handler for changing Job # -> carries over previous mix and adjustments from prior truck on that job
+  const handleJobCodeChange = (newJobCode: string) => {
+    setJobCode(newJobCode);
+    if (initialValues?.id) return; // Don't auto-override when editing an existing record
+
+    const prev = findPreviousLoadForJob(newJobCode);
+    if (prev) {
+      if (prev.mixDesignId && mixDesigns.some((m) => m.id === prev.mixDesignId)) {
+        setSelectedMixId(prev.mixDesignId);
+      }
+      const adjs = extractLoadAdjustments(prev);
+      setStoneAdjPerYard(adjs.stoneAdjPerYard);
+      setStone38AdjPerYard(adjs.stone38AdjPerYard);
+      setSandAdjPerYard(adjs.sandAdjPerYard);
+      setCementAdjPerYard(adjs.cementAdjPerYard);
+      setWaterAdjPerYard(adjs.waterAdjPerYard);
+      setPlasticizerAdjPerYard(adjs.plasticizerAdjPerYard);
+      setRetarderAdjPerYard(adjs.retarderAdjPerYard);
+      if (adjs.hasAdjustments) {
+        setCarriedOverFrom({
+          truckCode: prev.truckCode,
+          batchNumber: prev.batchNumber,
+          mixCode: prev.mixCode,
+          jobCode: newJobCode,
+        });
+      } else {
+        setCarriedOverFrom(null);
+      }
+    } else {
+      setStoneAdjPerYard(0);
+      setStone38AdjPerYard(0);
+      setSandAdjPerYard(0);
+      setCementAdjPerYard(0);
+      setWaterAdjPerYard(0);
+      setPlasticizerAdjPerYard(0);
+      setRetarderAdjPerYard(0);
+      setCarriedOverFrom(null);
+    }
+  };
+
+  // Handler for changing Mix Design -> carries over adjustments if this mix was already tuned on this job
+  const handleMixChange = (newMixId: string) => {
+    setSelectedMixId(newMixId);
     setActualWaterInput("");
     setIsWaterAutoPopulated(false);
     setActualSandInput("");
     setIsSandAutoPopulated(false);
-  }, [selectedMixId]);
+
+    if (initialValues?.id) return; // Don't auto-override in edit mode
+
+    const prev = findPreviousLoadForJob(jobCode, newMixId);
+    if (prev && prev.mixDesignId === newMixId) {
+      const adjs = extractLoadAdjustments(prev);
+      setStoneAdjPerYard(adjs.stoneAdjPerYard);
+      setStone38AdjPerYard(adjs.stone38AdjPerYard);
+      setSandAdjPerYard(adjs.sandAdjPerYard);
+      setCementAdjPerYard(adjs.cementAdjPerYard);
+      setWaterAdjPerYard(adjs.waterAdjPerYard);
+      setPlasticizerAdjPerYard(adjs.plasticizerAdjPerYard);
+      setRetarderAdjPerYard(adjs.retarderAdjPerYard);
+      if (adjs.hasAdjustments) {
+        setCarriedOverFrom({
+          truckCode: prev.truckCode,
+          batchNumber: prev.batchNumber,
+          mixCode: prev.mixCode,
+          jobCode: jobCode,
+        });
+      } else {
+        setCarriedOverFrom(null);
+      }
+    } else {
+      setStoneAdjPerYard(0);
+      setStone38AdjPerYard(0);
+      setSandAdjPerYard(0);
+      setCementAdjPerYard(0);
+      setWaterAdjPerYard(0);
+      setPlasticizerAdjPerYard(0);
+      setRetarderAdjPerYard(0);
+      setCarriedOverFrom(null);
+    }
+  };
 
   // Base recipe rates
   const basePlRateFlOz = useMemo(() => {
@@ -546,6 +684,13 @@ export default function NewLoadForm({
             actualRetarder: totalRetarderBatchOz,
             concreteObservations: allObs.length > 0 ? allObs : ["Perfect"],
             batchAdjustments: allAdjustments,
+            stoneAdjPerYard,
+            stone38AdjPerYard,
+            sandAdjPerYard,
+            cementAdjPerYard,
+            waterAdjPerYard,
+            plasticizerAdjPerYard,
+            retarderAdjPerYard,
             batcherNotes: notes.trim(),
             batchNumber: initialValues.batchNumber || currentBatchNumber,
             jobCode: jobCode,
@@ -578,6 +723,13 @@ export default function NewLoadForm({
           actualRetarder: totalRetarderBatchOz,
           concreteObservations: allObs.length > 0 ? allObs : ["Perfect"],
           batchAdjustments: allAdjustments,
+          stoneAdjPerYard,
+          stone38AdjPerYard,
+          sandAdjPerYard,
+          cementAdjPerYard,
+          waterAdjPerYard,
+          plasticizerAdjPerYard,
+          retarderAdjPerYard,
           batcherNotes: notes.trim(),
           batchNumber: currentBatchNumber,
           jobCode: jobCode,
@@ -864,7 +1016,7 @@ export default function NewLoadForm({
                 className="form-input"
                 placeholder="Enter Job # (e.g. 01, 42, 105...)"
                 value={jobCode}
-                onChange={(e) => setJobCode(e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, ""))}
+                onChange={(e) => handleJobCodeChange(e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, ""))}
                 style={{
                   fontSize: "1.2rem",
                   fontWeight: "900",
@@ -886,7 +1038,7 @@ export default function NewLoadForm({
               {jobCode !== "01" && (
                 <button
                   type="button"
-                  onClick={() => setJobCode("01")}
+                  onClick={() => handleJobCodeChange("01")}
                   style={{
                     background: "none",
                     border: "none",
@@ -1000,7 +1152,7 @@ export default function NewLoadForm({
               <select
                 className="form-input"
                 value={selectedMixId}
-                onChange={(e) => setSelectedMixId(e.target.value)}
+                onChange={(e) => handleMixChange(e.target.value)}
                 style={{
                   fontSize: "1rem",
                   fontWeight: "800",
@@ -1133,6 +1285,55 @@ export default function NewLoadForm({
             </div>
           </div>
 
+          {/* Active Material Adjustments Carry-Over Banner */}
+          {(stoneAdjPerYard !== 0 || stone38AdjPerYard !== 0 || sandAdjPerYard !== 0 || cementAdjPerYard !== 0 || waterAdjPerYard !== 0 || plasticizerAdjPerYard !== 0 || retarderAdjPerYard !== 0) && (
+            <div
+              style={{
+                padding: "10px 14px",
+                borderRadius: "12px",
+                backgroundColor: "rgba(16, 185, 129, 0.12)",
+                border: "1.5px solid rgba(16, 185, 129, 0.35)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: "8px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={{ fontSize: "1.15rem" }}>⚡</span>
+                <div>
+                  <strong style={{ color: "#10b981", fontSize: "0.88rem" }}>
+                    Mix Adjustments Carried Over
+                  </strong>
+                  <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                    {carriedOverFrom?.truckCode
+                      ? `Loaded previous cement/water/aggregate rates from Truck ${carriedOverFrom.truckCode} on Job #${jobCode}`
+                      : `Custom 1-yd rates automatically carried over for Job #${jobCode}`}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setStoneAdjPerYard(0);
+                  setStone38AdjPerYard(0);
+                  setSandAdjPerYard(0);
+                  setCementAdjPerYard(0);
+                  setWaterAdjPerYard(0);
+                  setPlasticizerAdjPerYard(0);
+                  setRetarderAdjPerYard(0);
+                  setCarriedOverFrom(null);
+                }}
+                className="btn-secondary"
+                style={{ padding: "5px 12px", fontSize: "0.75rem", fontWeight: "800", color: "#f59e0b" }}
+              >
+                Reset to Standard Recipe
+              </button>
+            </div>
+          )}
+
           {/* Active Formulation Card: 2 Distinct Rows (1-Yard Mix Base Values & Truck Batch Totals) */}
           {activeMix && (
             <div
@@ -1167,6 +1368,7 @@ export default function NewLoadForm({
                       setWaterAdjPerYard(0);
                       setPlasticizerAdjPerYard(0);
                       setRetarderAdjPerYard(0);
+                      setCarriedOverFrom(null);
                     }}
                     className="btn-secondary"
                     style={{ padding: "4px 10px", fontSize: "0.72rem", fontWeight: "800", color: "#f59e0b" }}
