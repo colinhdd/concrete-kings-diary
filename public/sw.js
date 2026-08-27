@@ -1,7 +1,7 @@
 // CK Central, Fuel & Batching - Offline-First Service Worker
 // Strategy: Network-first for fresh updates, offline-fallback cache
 
-const CACHE_VERSION = "ck-apps-v4";
+const CACHE_VERSION = "ck-apps-v5";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
