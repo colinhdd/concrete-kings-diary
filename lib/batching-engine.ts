@@ -104,6 +104,21 @@ export const DEFAULT_PANTRY_SG: Required<PantrySpecificGravities> = {
   airTargetPct: 1.0,
 };
 
+/**
+ * Standard NIST / ASTM conversion factor:
+ * 1 US Fluid Ounce (fl oz) = 29.5735295625 mL
+ * 1 mL = 0.0338140227 fl oz
+ */
+export const ML_PER_FL_OZ = 29.5735295625;
+
+export function mlToFlOz(ml: number): number {
+  return ml / ML_PER_FL_OZ;
+}
+
+export function flOzToMl(flOz: number): number {
+  return flOz * ML_PER_FL_OZ;
+}
+
 export interface BatchCalculationInput {
   master: MasterRecipe;
   volume: number; // CYD (Cubic Yards)
@@ -195,9 +210,9 @@ export function calculateBatchFormulation(
   const plRateAdj = adj.plasticizerPerYard !== undefined ? adj.plasticizerPerYard : (adj.plasticizer && volume > 0 ? adj.plasticizer / volume : 0);
   const retRateAdj = adj.retarderPerYard !== undefined ? adj.retarderPerYard : (adj.retarder && volume > 0 ? adj.retarder / volume : 0);
 
-  // Admixture rates converted from mL to fl oz (1 fl oz = 29.5735 mL)
-  const basePlRateFlOz = (master.plasticizer || 0) >= 50 ? (master.plasticizer || 0) / 29.5735296 : (master.plasticizer || 0);
-  const baseRetRateFlOz = (master.retarder || 0) >= 50 ? (master.retarder || 0) / 29.5735296 : (master.retarder || 0);
+  // Admixture rates converted from mL to fl oz (1 fl oz = 29.5735295625 mL)
+  const basePlRateFlOz = (master.plasticizer || 0) >= 40 ? mlToFlOz(master.plasticizer || 0) : (master.plasticizer || 0);
+  const baseRetRateFlOz = (master.retarder || 0) >= 40 ? mlToFlOz(master.retarder || 0) : (master.retarder || 0);
 
   const effCementRate = Math.max(0, master.cement + cementRateAdj);
   const effS34Rate = Math.max(0, master.threeQuarterStone + s34RateAdj);
@@ -298,8 +313,8 @@ export function calculateBatchFormulation(
   const sandDryVolM3 = baseSandDry / (sg.sandSG * 1000);
   const s34VolM3 = baseS34Dry / (sg.s34SG * 1000);
   const s38VolM3 = baseS38Dry / (sg.s38SG * 1000);
-  const plVolM3 = (plTotal * 29.5735296) / 1000000;
-  const retVolM3 = (retTotal * 29.5735296) / 1000000;
+  const plVolM3 = (plTotal * ML_PER_FL_OZ) / 1000000;
+  const retVolM3 = (retTotal * ML_PER_FL_OZ) / 1000000;
 
   const totalVolM3 =
     cementVolM3 +
@@ -435,7 +450,9 @@ export interface MixConversionOutput {
     waterToMixerL: number; // Rounded down to 50 L
     // Admixtures
     plasticizerFlOz: number;
+    plasticizerMl: number;
     retarderFlOz: number;
+    retarderMl: number;
   };
 
   // Material-by-material breakdown
@@ -512,8 +529,8 @@ export function calculateMixConversion(input: MixConversionInput): MixConversion
   const srcS34Rate = Math.max(0, sourceMix.threeQuarterStone + (sourceAdjustments.threeQuarterStonePerYard || 0));
   const srcS38Rate = Math.max(0, (sourceMix.threeEighthStone || 0) + (sourceAdjustments.threeEighthStonePerYard || 0));
   const srcWaterRate = Math.max(0, sourceMix.designWater + (sourceAdjustments.waterPerYard || 0));
-  const srcBasePl = (sourceMix.plasticizer || 0) >= 50 ? (sourceMix.plasticizer || 0) / 29.5735296 : (sourceMix.plasticizer || 0);
-  const srcBaseRet = (sourceMix.retarder || 0) >= 50 ? (sourceMix.retarder || 0) / 29.5735296 : (sourceMix.retarder || 0);
+  const srcBasePl = (sourceMix.plasticizer || 0) >= 40 ? mlToFlOz(sourceMix.plasticizer || 0) : (sourceMix.plasticizer || 0);
+  const srcBaseRet = (sourceMix.retarder || 0) >= 40 ? mlToFlOz(sourceMix.retarder || 0) : (sourceMix.retarder || 0);
   const srcPlRate = Math.max(0, srcBasePl + (sourceAdjustments.plasticizerPerYard || 0));
   const srcRetRate = Math.max(0, srcBaseRet + (sourceAdjustments.retarderPerYard || 0));
 
@@ -522,8 +539,8 @@ export function calculateMixConversion(input: MixConversionInput): MixConversion
   const tgtS34Rate = Math.max(0, targetMix.threeQuarterStone + (targetAdjustments.threeQuarterStonePerYard || 0));
   const tgtS38Rate = Math.max(0, (targetMix.threeEighthStone || 0) + (targetAdjustments.threeEighthStonePerYard || 0));
   const tgtWaterRate = Math.max(0, targetMix.designWater + (targetAdjustments.waterPerYard || 0));
-  const tgtBasePl = (targetMix.plasticizer || 0) >= 50 ? (targetMix.plasticizer || 0) / 29.5735296 : (targetMix.plasticizer || 0);
-  const tgtBaseRet = (targetMix.retarder || 0) >= 50 ? (targetMix.retarder || 0) / 29.5735296 : (targetMix.retarder || 0);
+  const tgtBasePl = (targetMix.plasticizer || 0) >= 40 ? mlToFlOz(targetMix.plasticizer || 0) : (targetMix.plasticizer || 0);
+  const tgtBaseRet = (targetMix.retarder || 0) >= 40 ? mlToFlOz(targetMix.retarder || 0) : (targetMix.retarder || 0);
   const tgtPlRate = Math.max(0, tgtBasePl + (targetAdjustments.plasticizerPerYard || 0));
   const tgtRetRate = Math.max(0, tgtBaseRet + (targetAdjustments.retarderPerYard || 0));
 
@@ -585,8 +602,8 @@ export function calculateMixConversion(input: MixConversionInput): MixConversion
   const sandDryVolM3 = resultingSandDryTotal / (sg.sandSG * 1000);
   const s34VolM3 = resultingS34DryTotal / (sg.s34SG * 1000);
   const s38VolM3 = resultingS38DryTotal / (sg.s38SG * 1000);
-  const plVolM3 = (resultingPlTotal * 29.5735296) / 1000000;
-  const retVolM3 = (resultingRetTotal * 29.5735296) / 1000000;
+  const plVolM3 = (resultingPlTotal * ML_PER_FL_OZ) / 1000000;
+  const retVolM3 = (resultingRetTotal * ML_PER_FL_OZ) / 1000000;
 
   const totalVolM3 =
     cementVolM3 +
@@ -673,7 +690,9 @@ export function calculateMixConversion(input: MixConversionInput): MixConversion
       targetWaterToMixerExactL: targetWaterToMixerExact,
       waterToMixerL: waterToMixer,
       plasticizerFlOz: plToAdd,
+      plasticizerMl: Math.round(flOzToMl(plToAdd)),
       retarderFlOz: retToAdd,
+      retarderMl: Math.round(flOzToMl(retToAdd)),
     },
     materials: {
       cement: {

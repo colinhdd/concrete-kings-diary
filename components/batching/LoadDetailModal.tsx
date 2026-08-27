@@ -25,6 +25,7 @@ import {
   updateLoad,
   voidLoad,
 } from "@/lib/db-batching";
+import { flOzToMl } from "@/lib/batching-engine";
 
 interface LoadDetailModalProps {
   load: LoadRecord | null;
@@ -429,6 +430,11 @@ export default function LoadDetailModal({
                           : Math.round((snapshot.plasticizerDesign || 0) * load.quantity)
                         ).toLocaleString()} fl oz
                       </strong>
+                      <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginLeft: "4px" }}>
+                        ({Math.round(flOzToMl(load.actualPlasticizer !== undefined && load.actualPlasticizer > 0
+                          ? load.actualPlasticizer
+                          : (snapshot.plasticizerDesign || 0) * load.quantity)).toLocaleString()} mL)
+                      </span>
                       <div style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>
                         {snapshot.plasticizerDesign ? `Rate: ${snapshot.plasticizerDesign} fl oz/yd³` : ""}
                       </div>
@@ -442,6 +448,11 @@ export default function LoadDetailModal({
                           : Math.round((snapshot.retarderDesign || 0) * load.quantity)
                         ).toLocaleString()} fl oz
                       </strong>
+                      <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginLeft: "4px" }}>
+                        ({Math.round(flOzToMl(load.actualRetarder !== undefined && load.actualRetarder > 0
+                          ? load.actualRetarder
+                          : (snapshot.retarderDesign || 0) * load.quantity)).toLocaleString()} mL)
+                      </span>
                       <div style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>
                         {snapshot.retarderDesign ? `Rate: ${snapshot.retarderDesign} fl oz/yd³` : "0 fl oz/yd³"}
                       </div>

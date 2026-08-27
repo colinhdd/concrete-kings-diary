@@ -39,7 +39,7 @@ import {
   extractLoadAdjustments,
   DEFAULT_MIX_DESIGNS,
 } from "@/lib/db-batching";
-import { calculateBatchFormulation } from "@/lib/batching-engine";
+import { calculateBatchFormulation, mlToFlOz, flOzToMl, ML_PER_FL_OZ } from "@/lib/batching-engine";
 
 interface NewLoadFormProps {
   batchingDay: BatchingDay;
@@ -332,12 +332,12 @@ export default function NewLoadForm({
   // Base recipe rates
   const basePlRateFlOz = useMemo(() => {
     if (!activeMix?.plasticizer) return 0;
-    return activeMix.plasticizer >= 50 ? activeMix.plasticizer / 29.5735296 : activeMix.plasticizer;
+    return activeMix.plasticizer >= 40 ? mlToFlOz(activeMix.plasticizer) : activeMix.plasticizer;
   }, [activeMix]);
 
   const baseRetRateFlOz = useMemo(() => {
     if (!activeMix?.retarder) return 0;
-    return activeMix.retarder >= 50 ? activeMix.retarder / 29.5735296 : activeMix.retarder;
+    return activeMix.retarder >= 40 ? mlToFlOz(activeMix.retarder) : activeMix.retarder;
   }, [activeMix]);
 
   const baseStoneRate = activeMix?.threeQuarterStone || 0;
@@ -1906,7 +1906,7 @@ export default function NewLoadForm({
               <div>
                 <span style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>Plasticizer</span>
                 <div style={{ fontSize: "1.1rem", fontWeight: "800", color: "#8b5cf6" }}>
-                  {totalPlasticizerBatchOz} fl oz
+                  {totalPlasticizerBatchOz} fl oz <span style={{ fontSize: "0.8rem", fontWeight: "600", color: "var(--text-muted)" }}>({Math.round(flOzToMl(totalPlasticizerBatchOz)).toLocaleString()} mL)</span>
                 </div>
                 <div style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>
                   {effPlRate.toFixed(1)} fl oz/yd³ {plasticizerAdjPerYard !== 0 && `(${plasticizerAdjPerYard > 0 ? `+${plasticizerAdjPerYard}` : plasticizerAdjPerYard} oz/yd)`}
@@ -1916,7 +1916,7 @@ export default function NewLoadForm({
                 <div>
                   <span style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>Retarder</span>
                   <div style={{ fontSize: "1.1rem", fontWeight: "800", color: "#f59e0b" }}>
-                    {totalRetarderBatchOz} fl oz
+                    {totalRetarderBatchOz} fl oz <span style={{ fontSize: "0.8rem", fontWeight: "600", color: "var(--text-muted)" }}>({Math.round(flOzToMl(totalRetarderBatchOz)).toLocaleString()} mL)</span>
                   </div>
                   <div style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>
                     {effRetRate.toFixed(1)} fl oz/yd³ {retarderAdjPerYard !== 0 && `(${retarderAdjPerYard > 0 ? `+${retarderAdjPerYard}` : retarderAdjPerYard} oz/yd)`}
