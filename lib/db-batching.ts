@@ -295,13 +295,13 @@ export const DEFAULT_MIX_DESIGNS: MixDesign[] = [
     description: "CHUTE 3000 PSI",
     strength: "3000 PSI",
     placementType: "Direct Chute",
-    cement: 235,
-    sand: 805,
-    threeQuarterStone: 705,
+    cement: 230,
+    sand: 850,
+    threeQuarterStone: 750,
     threeEighthStone: 0,
     designWater: 113,
-    plasticizer: 470,
-    retarder: 353,
+    plasticizer: 345,
+    retarder: 460,
     version: 1,
     active: true,
     createdAt: Date.now(),
@@ -313,13 +313,13 @@ export const DEFAULT_MIX_DESIGNS: MixDesign[] = [
     description: "CHUTE 3500 PSI",
     strength: "3500 PSI",
     placementType: "Direct Chute",
-    cement: 240,
-    sand: 805,
-    threeQuarterStone: 705,
+    cement: 235,
+    sand: 850,
+    threeQuarterStone: 750,
     threeEighthStone: 0,
     designWater: 113,
-    plasticizer: 480,
-    retarder: 360,
+    plasticizer: 353,
+    retarder: 353,
     version: 1,
     active: true,
     createdAt: Date.now(),
@@ -332,11 +332,11 @@ export const DEFAULT_MIX_DESIGNS: MixDesign[] = [
     strength: "3750 PSI",
     placementType: "Direct Chute",
     cement: 255,
-    sand: 805,
-    threeQuarterStone: 705,
+    sand: 850,
+    threeQuarterStone: 750,
     threeEighthStone: 0,
     designWater: 113,
-    plasticizer: 510,
+    plasticizer: 446,
     retarder: 383,
     version: 1,
     active: true,
@@ -350,11 +350,11 @@ export const DEFAULT_MIX_DESIGNS: MixDesign[] = [
     strength: "4000 PSI",
     placementType: "Direct Chute",
     cement: 285,
-    sand: 805,
-    threeQuarterStone: 705,
+    sand: 850,
+    threeQuarterStone: 750,
     threeEighthStone: 0,
     designWater: 113,
-    plasticizer: 570,
+    plasticizer: 499,
     retarder: 428,
     version: 1,
     active: true,
@@ -368,8 +368,8 @@ export const DEFAULT_MIX_DESIGNS: MixDesign[] = [
     strength: "4500 PSI",
     placementType: "Direct Chute",
     cement: 290,
-    sand: 805,
-    threeQuarterStone: 705,
+    sand: 850,
+    threeQuarterStone: 750,
     threeEighthStone: 0,
     designWater: 113,
     plasticizer: 580,
@@ -380,17 +380,17 @@ export const DEFAULT_MIX_DESIGNS: MixDesign[] = [
     updatedAt: Date.now(),
   },
   {
-    id: "mix_c3750_mx5050",
+    id: "mix_c3750_mx_50_50",
     code: "C-3750-MX-50-50",
     description: "CHUTE 3750 MIX (50/50 Stone Blend)",
     strength: "3750 PSI",
     placementType: "Direct Chute",
     cement: 260,
-    sand: 805,
-    threeQuarterStone: 355,
+    sand: 850,
+    threeQuarterStone: 750,
     threeEighthStone: 350,
     designWater: 113,
-    plasticizer: 520,
+    plasticizer: 455,
     retarder: 390,
     version: 1,
     active: true,
@@ -406,12 +406,12 @@ export const DEFAULT_MIX_DESIGNS: MixDesign[] = [
     strength: "3000 PSI",
     placementType: "Pump",
     cement: 240,
-    sand: 875,
-    threeQuarterStone: 625,
+    sand: 915,
+    threeQuarterStone: 635,
     threeEighthStone: 0,
     designWater: 121,
-    plasticizer: 480,
-    retarder: 360,
+    plasticizer: 360,
+    retarder: 480,
     version: 1,
     active: true,
     createdAt: Date.now(),
@@ -424,8 +424,8 @@ export const DEFAULT_MIX_DESIGNS: MixDesign[] = [
     strength: "3500 PSI",
     placementType: "Pump",
     cement: 245,
-    sand: 835,
-    threeQuarterStone: 655,
+    sand: 895,
+    threeQuarterStone: 650,
     threeEighthStone: 0,
     designWater: 121,
     plasticizer: 490,
@@ -442,12 +442,12 @@ export const DEFAULT_MIX_DESIGNS: MixDesign[] = [
     strength: "3750 PSI",
     placementType: "Pump",
     cement: 260,
-    sand: 815,
-    threeQuarterStone: 670,
+    sand: 875,
+    threeQuarterStone: 650,
     threeEighthStone: 0,
     designWater: 121,
-    plasticizer: 520,
-    retarder: 390,
+    plasticizer: 390,
+    retarder: 520,
     version: 1,
     active: true,
     createdAt: Date.now(),
@@ -460,12 +460,12 @@ export const DEFAULT_MIX_DESIGNS: MixDesign[] = [
     strength: "4000 PSI",
     placementType: "Pump",
     cement: 290,
-    sand: 795,
-    threeQuarterStone: 685,
+    sand: 825,
+    threeQuarterStone: 695,
     threeEighthStone: 0,
     designWater: 124,
-    plasticizer: 580,
-    retarder: 435,
+    plasticizer: 653,
+    retarder: 580,
     version: 1,
     active: true,
     createdAt: Date.now(),
@@ -482,7 +482,7 @@ export const DEFAULT_MIX_DESIGNS: MixDesign[] = [
     threeQuarterStone: 725,
     threeEighthStone: 0,
     designWater: 124,
-    plasticizer: 811,
+    plasticizer: 738,
     retarder: 443,
     version: 1,
     active: true,
@@ -492,11 +492,11 @@ export const DEFAULT_MIX_DESIGNS: MixDesign[] = [
   {
     id: "mix_p5000",
     code: "P-5000",
-    description: "PUMP 5000 PSI (Commercial Heavy Duty)",
+    description: "PUMP 5000 PSI",
     strength: "5000 PSI",
     placementType: "Pump",
     cement: 325,
-    sand: 700,
+    sand: 750,
     threeQuarterStone: 750,
     threeEighthStone: 0,
     designWater: 128,
@@ -508,7 +508,7 @@ export const DEFAULT_MIX_DESIGNS: MixDesign[] = [
     updatedAt: Date.now(),
   },
 
-  // --- BLENDED PUMP MIXES ---
+  // --- BLENDED AGGREGATE MIXES ---
   {
     id: "mix_p3000_mx5050",
     code: "P-3000-MX-50-50",
@@ -516,12 +516,48 @@ export const DEFAULT_MIX_DESIGNS: MixDesign[] = [
     strength: "3000 PSI",
     placementType: "Pump",
     cement: 240,
-    sand: 875,
-    threeQuarterStone: 315,
-    threeEighthStone: 310,
+    sand: 915,
+    threeQuarterStone: 321,
+    threeEighthStone: 326,
     designWater: 121,
-    plasticizer: 480,
-    retarder: 360,
+    plasticizer: 600,
+    retarder: 480,
+    version: 1,
+    active: true,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  },
+  {
+    id: "mix_p3000_mx2575",
+    code: "P-3000-MX-25-75",
+    description: "PUMP 3000 MIX (25/75 Stone Blend)",
+    strength: "3000 PSI",
+    placementType: "Pump",
+    cement: 240,
+    sand: 915,
+    threeQuarterStone: 155,
+    threeEighthStone: 475,
+    designWater: 124,
+    plasticizer: 600,
+    retarder: 480,
+    version: 1,
+    active: true,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  },
+  {
+    id: "mix_p3500_mx2575",
+    code: "P-3500-MX-25-75",
+    description: "PUMP 3500 MIX (25/75 Stone Blend)",
+    strength: "3500 PSI",
+    placementType: "Pump",
+    cement: 250,
+    sand: 835,
+    threeQuarterStone: 320,
+    threeEighthStone: 335,
+    designWater: 121,
+    plasticizer: 625,
+    retarder: 375,
     version: 1,
     active: true,
     createdAt: Date.now(),
@@ -533,13 +569,13 @@ export const DEFAULT_MIX_DESIGNS: MixDesign[] = [
     description: "PUMP 3500 MIX (50/50 Stone Blend)",
     strength: "3500 PSI",
     placementType: "Pump",
-    cement: 245,
-    sand: 835,
-    threeQuarterStone: 320,
-    threeEighthStone: 335,
-    designWater: 121,
-    plasticizer: 490,
-    retarder: 368,
+    cement: 250,
+    sand: 875,
+    threeQuarterStone: 165,
+    threeEighthStone: 485,
+    designWater: 124,
+    plasticizer: 625,
+    retarder: 375,
     version: 1,
     active: true,
     createdAt: Date.now(),
@@ -556,7 +592,7 @@ export const DEFAULT_MIX_DESIGNS: MixDesign[] = [
     threeQuarterStone: 300,
     threeEighthStone: 300,
     designWater: 121,
-    plasticizer: 520,
+    plasticizer: 650,
     retarder: 390,
     version: 1,
     active: true,
@@ -574,7 +610,7 @@ export const DEFAULT_MIX_DESIGNS: MixDesign[] = [
     threeQuarterStone: 335,
     threeEighthStone: 335,
     designWater: 124,
-    plasticizer: 725,
+    plasticizer: 798,
     retarder: 435,
     version: 1,
     active: true,
@@ -582,67 +618,47 @@ export const DEFAULT_MIX_DESIGNS: MixDesign[] = [
     updatedAt: Date.now(),
   },
 
-  // --- SPECIALTY & WALL MIXES ---
+  // --- SPECIALTY, SLAB & WALL MIXES ---
   {
     id: "mix_s3000",
     code: "S-3000",
-    description: "SLAB 3000 PSI (Steel Finish)",
+    description: "SLAB 3000 PSI",
     strength: "3000 PSI",
     placementType: "Flatwork",
-    cement: 240,
+    cement: 235,
     sand: 875,
     threeQuarterStone: 500,
     threeEighthStone: 125,
     designWater: 121,
-    plasticizer: 480,
-    retarder: 360,
+    plasticizer: 470,
+    retarder: 353,
     version: 1,
     active: true,
     createdAt: Date.now(),
     updatedAt: Date.now(),
   },
   {
-    id: "mix_w30000",
-    code: "W-30000",
+    id: "mix_w3000",
+    code: "W-3000",
     description: "WALL MIX 3000 PSI",
     strength: "3000 PSI",
     placementType: "Pump",
-    cement: 245,
+    cement: 240,
     sand: 875,
     threeQuarterStone: 0,
     threeEighthStone: 650,
     designWater: 124,
-    plasticizer: 613,
-    retarder: 368,
+    plasticizer: 600,
+    retarder: 480,
     version: 1,
     active: true,
     createdAt: Date.now(),
     updatedAt: Date.now(),
   },
-  {
-    id: "mix_w30000_mx7525",
-    code: "W-30000-MX-75-25",
-    description: "WALL MIX 3000 (75/25 Blend)",
-    strength: "3000 PSI",
-    placementType: "Pump",
-    cement: 245,
-    sand: 875,
-    threeQuarterStone: 170,
-    threeEighthStone: 480,
-    designWater: 124,
-    plasticizer: 613,
-    retarder: 368,
-    version: 1,
-    active: true,
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-  },
-
-  // --- CLIENT CUSTOM MIXES ---
   {
     id: "mix_p3000_icc",
     code: "P-3000-ICC",
-    description: "ICC 3000 PSI Pump",
+    description: "ICC 3000 PSI",
     strength: "3000 PSI",
     placementType: "Pump",
     cement: 236,
@@ -705,6 +721,24 @@ export const DEFAULT_MIX_DESIGNS: MixDesign[] = [
     threeEighthStone: 0,
     designWater: 121,
     plasticizer: 1170,
+    retarder: 0,
+    version: 1,
+    active: true,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  },
+  {
+    id: "mix_astro",
+    code: "ASTRO",
+    description: "ASTRO SPECIAL MIX",
+    strength: "4000 PSI",
+    placementType: "Pump",
+    cement: 330,
+    sand: 1008,
+    threeQuarterStone: 210,
+    threeEighthStone: 475,
+    designWater: 135,
+    plasticizer: 0,
     retarder: 0,
     version: 1,
     active: true,
@@ -782,15 +816,12 @@ export async function seedInitialData() {
   const db = await initDB();
   if (!db) return;
 
-  // Seed Mix Designs
-  const mixCount = await db.count("mix_designs");
-  if (mixCount === 0) {
-    const tx = db.transaction("mix_designs", "readwrite");
-    for (const mix of DEFAULT_MIX_DESIGNS) {
-      await tx.store.put(mix);
-    }
-    await tx.done;
+  // Seed/Sync Mix Designs from Cooking Station Google Sheet
+  const mixTx = db.transaction("mix_designs", "readwrite");
+  for (const mix of DEFAULT_MIX_DESIGNS) {
+    await mixTx.store.put(mix);
   }
+  await mixTx.done;
 
   // Seed Trucks
   const truckCount = await db.count("trucks");
@@ -1542,6 +1573,31 @@ export async function getMixDesigns(activeOnly = true): Promise<MixDesign[]> {
   if (all.length === 0) return DEFAULT_MIX_DESIGNS;
 
   return activeOnly ? all.filter((m) => m.active) : all;
+}
+
+export async function syncRecipesFromCloud(): Promise<MixDesign[]> {
+  if (!isClient) return DEFAULT_MIX_DESIGNS;
+  const db = await initDB();
+  if (!db) return DEFAULT_MIX_DESIGNS;
+
+  try {
+    const res = await fetch("/api/batching/recipes", { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.recipes) && data.recipes.length > 0) {
+        const tx = db.transaction("mix_designs", "readwrite");
+        for (const r of data.recipes) {
+          await tx.store.put(r);
+        }
+        await tx.done;
+        return data.recipes;
+      }
+    }
+  } catch (err) {
+    console.warn("Could not sync recipes from cloud endpoint:", err);
+  }
+
+  return getMixDesigns();
 }
 
 export async function saveMixDesign(mix: MixDesign): Promise<MixDesign> {

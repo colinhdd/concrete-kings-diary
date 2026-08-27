@@ -32,6 +32,7 @@ import {
   getAdjustmentOptions,
   getUnsyncedLoads,
   syncBatchingDataToCloud,
+  syncRecipesFromCloud,
   BatchingDay,
   MoistureReading,
   MixDesign,
@@ -144,6 +145,15 @@ export default function BatchingPortal() {
       setObservationOptions(obs);
       setAdjustmentOptions(adjs);
       setUnsyncedCount(unsynced.length);
+
+      // Background sync recipes from Cooking Station Google Sheet
+      syncRecipesFromCloud()
+        .then((latestMixes) => {
+          if (latestMixes && latestMixes.length > 0) {
+            setMixDesigns(latestMixes);
+          }
+        })
+        .catch(() => {});
     } catch (err) {
       console.error("Failed to load local batching data:", err);
     }
