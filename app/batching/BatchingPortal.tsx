@@ -583,20 +583,6 @@ export default function BatchingPortal() {
 
         <button
           type="button"
-          className={`tab-button ${activeTab === "convert" ? "active" : ""}`}
-          onClick={() => {
-            setConversionSourceLoad(null);
-            setActiveTab("convert");
-          }}
-        >
-          <div className="tab-icon-wrapper">
-            <ArrowLeftRight size={20} />
-          </div>
-          <span>Convert</span>
-        </button>
-
-        <button
-          type="button"
           className={`tab-button ${activeTab === "review" ? "active" : ""}`}
           onClick={() => setActiveTab("review")}
         >
