@@ -927,13 +927,13 @@ export default function NewLoadForm({
 
       {/* ================= STEP 1: TRUCK & JOB NUMBER ================= */}
       {currentStep === 1 && (
-        <div className="glass-panel" style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "16px" }}>
+        <div className="glass-panel" style={{ padding: "12px 10px", display: "flex", flexDirection: "column", gap: "10px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <h3 style={{ fontSize: "1.15rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "8px", margin: 0 }}>
-              <TruckIcon size={22} color="#e05300" /> 1. Job Number & Truck
+            <h3 style={{ fontSize: "1rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "6px", margin: 0 }}>
+              <TruckIcon size={18} color="#e05300" /> 1. Job Number & Truck
             </h3>
             {activeTruck && (
-              <span className="badge synced" style={{ fontSize: "0.95rem", fontWeight: "800" }}>
+              <span className="badge synced" style={{ fontSize: "0.8rem", fontWeight: "800", padding: "3px 7px" }}>
                 Truck: {activeTruck.code}
               </span>
             )}
@@ -942,36 +942,36 @@ export default function NewLoadForm({
           {/* Job Number Manual Input with Auto-Prefix */}
           <div
             style={{
-              padding: "16px",
-              borderRadius: "12px",
+              padding: "10px 12px",
+              borderRadius: "10px",
               backgroundColor: jobCode.trim() ? "rgba(224, 83, 0, 0.08)" : "rgba(239, 68, 68, 0.08)",
               border: jobCode.trim() ? "1.5px solid rgba(224, 83, 0, 0.35)" : "1.5px solid rgba(239, 68, 68, 0.4)",
               display: "flex",
               flexDirection: "column",
-              gap: "8px",
+              gap: "6px",
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <label style={{ fontSize: "0.9rem", fontWeight: "800", color: "var(--text-primary)", margin: 0 }}>
+              <label style={{ fontSize: "0.8rem", fontWeight: "800", color: "var(--text-primary)", margin: 0 }}>
                 Job Number (JJ) <span style={{ color: "#ef4444" }}>*</span>
               </label>
-              <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", fontWeight: "600" }}>
-                {todaysLoads && todaysLoads.length > 0 ? "Auto-populated from previous load" : "Auto-populated: 01 (First load today)"}
+              <span style={{ fontSize: "0.7rem", color: "var(--text-secondary)", fontWeight: "600" }}>
+                {todaysLoads && todaysLoads.length > 0 ? "Auto from previous" : "Auto: 01"}
               </span>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
               <span
                 style={{
-                  padding: "12px 14px",
-                  borderRadius: "10px",
+                  padding: "8px 10px",
+                  borderRadius: "8px",
                   backgroundColor: "var(--bg-tertiary)",
                   border: "1px solid var(--glass-border)",
                   color: "var(--text-secondary)",
                   fontFamily: "Outfit, monospace",
-                  fontSize: "1.15rem",
+                  fontSize: "0.95rem",
                   fontWeight: "800",
-                  letterSpacing: "0.03em",
+                  letterSpacing: "0.02em",
                 }}
               >
                 {todayDateStr}-
@@ -982,26 +982,27 @@ export default function NewLoadForm({
                 pattern="[0-9]*"
                 maxLength={4}
                 className="form-input"
-                placeholder="Enter Job # (e.g. 01, 42, 105...)"
+                placeholder="Job # (e.g. 01, 42)"
                 value={jobCode}
                 onChange={(e) => handleJobCodeChange(e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, ""))}
                 style={{
-                  fontSize: "1.2rem",
+                  fontSize: "1.05rem",
                   fontWeight: "900",
                   fontFamily: "Outfit, monospace",
-                  padding: "12px 16px",
+                  padding: "8px 12px",
                   border: jobCode.trim() ? "2px solid #e05300" : "2px solid #ef4444",
                   flex: 1,
-                  letterSpacing: "0.04em",
+                  letterSpacing: "0.03em",
+                  minHeight: "38px",
                 }}
               />
             </div>
 
-            <div style={{ fontSize: "0.8rem", color: jobCode.trim() ? "#10b981" : "#ef4444", fontWeight: "700", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ fontSize: "0.75rem", color: jobCode.trim() ? "#10b981" : "#ef4444", fontWeight: "700", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span>
                 {jobCode.trim()
                   ? `✓ Batch Code: ${currentBatchNumber}`
-                  : "⚠️ Job Number is required to proceed with batching."}
+                  : "⚠️ Job Number required"}
               </span>
               {jobCode !== "01" && (
                 <button
@@ -1011,7 +1012,7 @@ export default function NewLoadForm({
                     background: "none",
                     border: "none",
                     color: "var(--text-secondary)",
-                    fontSize: "0.75rem",
+                    fontSize: "0.72rem",
                     fontWeight: "700",
                     cursor: "pointer",
                     textDecoration: "underline",
@@ -1024,16 +1025,16 @@ export default function NewLoadForm({
             </div>
           </div>
 
-          <p style={{ margin: "4px 0 0", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
-            Tap the mixer truck license plate number or manually enter a plate below:
+          <p style={{ margin: "2px 0 0", fontSize: "0.78rem", color: "var(--text-secondary)" }}>
+            Select mixer truck plate or enter manually:
           </p>
 
           {/* Quick license plate buttons grid */}
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(85px, 1fr))",
-              gap: "8px",
+              gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))",
+              gap: "6px",
             }}
           >
             {trucks.map((t) => {
@@ -1047,9 +1048,9 @@ export default function NewLoadForm({
                     setManualTruckCode("");
                   }}
                   style={{
-                    padding: "14px 6px",
-                    borderRadius: "12px",
-                    border: isSelected ? "2.5px solid #e05300" : "1px solid var(--glass-border)",
+                    padding: "8px 4px",
+                    borderRadius: "8px",
+                    border: isSelected ? "2px solid #e05300" : "1px solid var(--glass-border)",
                     backgroundColor: isSelected ? "rgba(224, 83, 0, 0.22)" : "var(--bg-tertiary)",
                     color: isSelected ? "#e05300" : "var(--text-primary)",
                     cursor: "pointer",
@@ -1057,10 +1058,10 @@ export default function NewLoadForm({
                     alignItems: "center",
                     justifyContent: "center",
                     transition: "all 0.15s ease",
-                    minHeight: "52px",
+                    minHeight: "40px",
                   }}
                 >
-                  <span style={{ fontSize: "1.15rem", fontWeight: "900", letterSpacing: "0.03em" }}>
+                  <span style={{ fontSize: "1rem", fontWeight: "900", letterSpacing: "0.02em" }}>
                     {t.code}
                   </span>
                 </button>
@@ -1069,9 +1070,9 @@ export default function NewLoadForm({
           </div>
 
           {/* Manual license plate input */}
-          <div style={{ marginTop: "10px" }}>
-            <label style={{ display: "block", fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "6px", fontWeight: "700" }}>
-              Or Manually Enter License Plate Number:
+          <div style={{ marginTop: "4px" }}>
+            <label style={{ display: "block", fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "4px", fontWeight: "700" }}>
+              Or Manually Enter Plate Number:
             </label>
             <input
               type="text"
@@ -1080,24 +1081,25 @@ export default function NewLoadForm({
               value={manualTruckCode}
               onChange={(e) => setManualTruckCode(e.target.value.toUpperCase())}
               style={{
-                fontSize: "1.15rem",
+                fontSize: "0.95rem",
                 fontWeight: "800",
-                letterSpacing: "0.04em",
-                padding: "12px 16px",
+                letterSpacing: "0.03em",
+                padding: "8px 12px",
                 border: manualTruckCode.trim() ? "2px solid #e05300" : "1px solid var(--glass-border)",
+                minHeight: "38px",
               }}
             />
           </div>
 
           {/* Wizard Next Button */}
-          <div style={{ marginTop: "16px", display: "flex", justifyContent: "flex-end" }}>
+          <div style={{ marginTop: "10px", display: "flex", justifyContent: "flex-end" }}>
             <button
               type="button"
               onClick={handleNextStep}
               className="btn-primary"
-              style={{ padding: "14px 28px", fontSize: "1.05rem", fontWeight: "800", display: "flex", alignItems: "center", gap: "8px" }}
+              style={{ padding: "10px 20px", fontSize: "0.95rem", fontWeight: "800", display: "flex", alignItems: "center", gap: "6px", minHeight: "42px" }}
             >
-              Next: Mix & Quantity <ArrowRight size={18} />
+              Next: Mix & Quantity <ArrowRight size={16} />
             </button>
           </div>
         </div>
@@ -1105,16 +1107,16 @@ export default function NewLoadForm({
 
       {/* ================= STEP 2: MIX DESIGN & QUANTITY ================= */}
       {currentStep === 2 && (
-        <div className="glass-panel" style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "18px" }}>
-          <h3 style={{ fontSize: "1.15rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "8px", margin: 0 }}>
-            <Layers size={22} color="#e05300" /> 2. Mix Design & Batch Quantity
+        <div className="glass-panel" style={{ padding: "12px 10px", display: "flex", flexDirection: "column", gap: "10px" }}>
+          <h3 style={{ fontSize: "1rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "6px", margin: 0 }}>
+            <Layers size={18} color="#e05300" /> 2. Mix Design & Batch Quantity
           </h3>
 
           {/* Mix Design Dropdown, Batch Quantity Input & Sand Moisture */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             {/* 1. Mix Design (Full Width) */}
             <div className="form-group" style={{ margin: 0, width: "100%" }}>
-              <label style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--text-primary)" }}>
+              <label style={{ fontSize: "0.78rem", fontWeight: "700", color: "var(--text-primary)" }}>
                 Select Concrete Mix Design
               </label>
               <select
@@ -1122,14 +1124,15 @@ export default function NewLoadForm({
                 value={selectedMixId}
                 onChange={(e) => handleMixChange(e.target.value)}
                 style={{
-                  fontSize: "1rem",
+                  fontSize: "0.9rem",
                   fontWeight: "800",
-                  padding: "12px 14px",
+                  padding: "8px 10px",
                   backgroundColor: "var(--bg-secondary)",
                   color: "var(--text-primary)",
-                  border: "2px solid var(--glass-border)",
-                  borderRadius: "12px",
+                  border: "1.5px solid var(--glass-border)",
+                  borderRadius: "8px",
                   width: "100%",
+                  minHeight: "38px",
                 }}
               >
                 {groupedMixes.map(([groupName, list]) => (
@@ -1145,13 +1148,13 @@ export default function NewLoadForm({
             </div>
 
             {/* 2. Batch Quantity, Sand Moisture & Stone Moisture (3 Equal Columns) */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(95px, 1fr))", gap: "8px", alignItems: "end" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(90px, 1fr))", gap: "6px", alignItems: "end" }}>
               {/* Batch Quantity */}
               <div className="form-group" style={{ margin: 0 }}>
-                <label style={{ fontSize: "0.78rem", fontWeight: "700", color: "var(--text-primary)" }}>
+                <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "var(--text-primary)" }}>
                   Quantity (Yards)
                 </label>
-                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                   <input
                     type="number"
                     inputMode="decimal"
@@ -1165,19 +1168,20 @@ export default function NewLoadForm({
                       setQuantity(isNaN(val) ? 0 : val);
                     }}
                     style={{
-                      fontSize: "1.15rem",
+                      fontSize: "1.05rem",
                       fontWeight: "900",
                       fontFamily: "Outfit, sans-serif",
                       textAlign: "center",
-                      padding: "8px",
+                      padding: "6px 4px",
                       backgroundColor: "var(--bg-secondary)",
                       color: "#e05300",
                       border: "2px solid #e05300",
-                      borderRadius: "10px",
+                      borderRadius: "8px",
                       width: "100%",
+                      minHeight: "38px",
                     }}
                   />
-                  <span style={{ fontSize: "0.95rem", fontWeight: "900", color: "#e05300", fontFamily: "Outfit, sans-serif", flexShrink: 0 }}>
+                  <span style={{ fontSize: "0.85rem", fontWeight: "900", color: "#e05300", fontFamily: "Outfit, sans-serif", flexShrink: 0 }}>
                     yd³
                   </span>
                 </div>
@@ -1185,7 +1189,7 @@ export default function NewLoadForm({
 
               {/* Sand Moisture */}
               <div className="form-group" style={{ margin: 0 }}>
-                <label style={{ fontSize: "0.78rem", fontWeight: "700", color: "var(--text-primary)" }}>
+                <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "var(--text-primary)" }}>
                   Sand Moist (%)
                 </label>
                 <div
@@ -1193,16 +1197,16 @@ export default function NewLoadForm({
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    padding: "6px 8px",
-                    borderRadius: "10px",
+                    padding: "4px 6px",
+                    borderRadius: "8px",
                     backgroundColor: "rgba(59, 130, 246, 0.08)",
-                    border: "2px solid rgba(59, 130, 246, 0.4)",
-                    height: "44px",
+                    border: "1.5px solid rgba(59, 130, 246, 0.4)",
+                    minHeight: "38px",
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: "3px" }}>
-                    <Droplets size={15} color="#3b82f6" />
-                    <span style={{ fontSize: "1.1rem", fontWeight: "900", color: "#3b82f6", fontFamily: "Outfit, sans-serif" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
+                    <Droplets size={13} color="#3b82f6" />
+                    <span style={{ fontSize: "0.95rem", fontWeight: "900", color: "#3b82f6", fontFamily: "Outfit, sans-serif" }}>
                       {sandMoisturePct}%
                     </span>
                   </div>
@@ -1210,16 +1214,16 @@ export default function NewLoadForm({
                     type="button"
                     onClick={() => onOpenMoistureModal?.("Sand")}
                     className="btn-secondary"
-                    style={{ padding: "3px 6px", fontSize: "0.68rem", fontWeight: "800" }}
+                    style={{ padding: "2px 5px", fontSize: "0.65rem", fontWeight: "800", minHeight: "26px" }}
                   >
-                    Update
+                    Edit
                   </button>
                 </div>
               </div>
 
               {/* Stone Moisture */}
               <div className="form-group" style={{ margin: 0 }}>
-                <label style={{ fontSize: "0.78rem", fontWeight: "700", color: "var(--text-primary)" }}>
+                <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "var(--text-primary)" }}>
                   Stone Moist (%)
                 </label>
                 <div
@@ -1227,16 +1231,16 @@ export default function NewLoadForm({
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    padding: "6px 8px",
-                    borderRadius: "10px",
+                    padding: "4px 6px",
+                    borderRadius: "8px",
                     backgroundColor: "rgba(16, 185, 129, 0.08)",
-                    border: "2px solid rgba(16, 185, 129, 0.4)",
-                    height: "44px",
+                    border: "1.5px solid rgba(16, 185, 129, 0.4)",
+                    minHeight: "38px",
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: "3px" }}>
-                    <Droplets size={15} color="#10b981" />
-                    <span style={{ fontSize: "1.1rem", fontWeight: "900", color: "#10b981", fontFamily: "Outfit, sans-serif" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
+                    <Droplets size={13} color="#10b981" />
+                    <span style={{ fontSize: "0.95rem", fontWeight: "900", color: "#10b981", fontFamily: "Outfit, sans-serif" }}>
                       {stoneMoisturePct}%
                     </span>
                   </div>
@@ -1244,9 +1248,9 @@ export default function NewLoadForm({
                     type="button"
                     onClick={() => onOpenMoistureModal?.("Stone")}
                     className="btn-secondary"
-                    style={{ padding: "3px 6px", fontSize: "0.68rem", fontWeight: "800" }}
+                    style={{ padding: "2px 5px", fontSize: "0.65rem", fontWeight: "800", minHeight: "26px" }}
                   >
-                    Update
+                    Edit
                   </button>
                 </div>
               </div>
@@ -1809,12 +1813,12 @@ export default function NewLoadForm({
 
       {/* ================= STEP 3: REVIEW & CONFIRM LOAD ================= */}
       {currentStep === 3 && (
-        <div className="glass-panel" style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "18px" }}>
+        <div className="glass-panel" style={{ padding: "12px 10px", display: "flex", flexDirection: "column", gap: "10px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <h3 style={{ fontSize: "1.2rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "8px", margin: 0 }}>
-              <Save size={22} color="#e05300" /> 3. Review &amp; Confirm Batch
+            <h3 style={{ fontSize: "1rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "6px", margin: 0 }}>
+              <Save size={18} color="#e05300" /> 3. Review &amp; Confirm Batch
             </h3>
-            <span className="badge synced" style={{ fontSize: "0.85rem" }}>
+            <span className="badge synced" style={{ fontSize: "0.75rem", padding: "2px 6px" }}>
               Ready to Log
             </span>
           </div>
@@ -1822,71 +1826,71 @@ export default function NewLoadForm({
           {/* Load Summary Confirmation Sheet */}
           <div
             style={{
-              padding: "18px",
-              borderRadius: "14px",
+              padding: "10px",
+              borderRadius: "10px",
               backgroundColor: "var(--bg-tertiary)",
               border: "1.5px solid var(--glass-border)",
               display: "flex",
               flexDirection: "column",
-              gap: "12px",
+              gap: "8px",
             }}
           >
-            <div style={{ paddingBottom: "10px", borderBottom: "1px solid var(--glass-border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", textTransform: "uppercase", fontWeight: "700" }}>
+            <div style={{ paddingBottom: "6px", borderBottom: "1px solid var(--glass-border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: "0.7rem", color: "var(--text-secondary)", textTransform: "uppercase", fontWeight: "700" }}>
                 Official Batch #
               </span>
-              <span style={{ fontSize: "1.1rem", fontWeight: "900", color: "#e05300", fontFamily: "Outfit, monospace" }}>
+              <span style={{ fontSize: "0.95rem", fontWeight: "900", color: "#e05300", fontFamily: "Outfit, monospace" }}>
                 {currentBatchNumber}
               </span>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
               <div>
-                <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", textTransform: "uppercase" }}>
+                <span style={{ fontSize: "0.68rem", color: "var(--text-secondary)", textTransform: "uppercase" }}>
                   Truck Plate
                 </span>
-                <div style={{ fontSize: "1.4rem", fontWeight: "900", color: "var(--text-primary)" }}>
+                <div style={{ fontSize: "1.15rem", fontWeight: "900", color: "var(--text-primary)" }}>
                   {activeTruck?.code}
                 </div>
               </div>
 
               <div>
-                <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", textTransform: "uppercase" }}>
+                <span style={{ fontSize: "0.68rem", color: "var(--text-secondary)", textTransform: "uppercase" }}>
                   Batch Quantity
                 </span>
-                <div style={{ fontSize: "1.4rem", fontWeight: "900", color: "#e05300" }}>
+                <div style={{ fontSize: "1.15rem", fontWeight: "900", color: "#e05300" }}>
                   {quantity} yd³
                 </div>
               </div>
             </div>
 
-            <div style={{ borderTop: "1px solid var(--glass-border)", paddingTop: "10px" }}>
-              <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", textTransform: "uppercase" }}>
+            <div style={{ borderTop: "1px solid var(--glass-border)", paddingTop: "6px" }}>
+              <span style={{ fontSize: "0.68rem", color: "var(--text-secondary)", textTransform: "uppercase" }}>
                 Mix Design
               </span>
-              <div style={{ fontSize: "1.1rem", fontWeight: "800", color: "var(--text-primary)" }}>
+              <div style={{ fontSize: "0.95rem", fontWeight: "800", color: "var(--text-primary)" }}>
                 {activeMix?.code} &bull; {activeMix?.description}
               </div>
             </div>
 
-            <div style={{ borderTop: "1px solid var(--glass-border)", paddingTop: "10px", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px" }}>
+            <div style={{ borderTop: "1px solid var(--glass-border)", paddingTop: "6px", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "6px" }}>
               <div>
-                <span style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>Expected Water</span>
-                <div style={{ fontSize: "1.1rem", fontWeight: "800", color: "#3b82f6" }}>
+                <span style={{ fontSize: "0.65rem", color: "var(--text-secondary)" }}>Design Water</span>
+                <div style={{ fontSize: "0.95rem", fontWeight: "800", color: "#3b82f6" }}>
                   {expectedBatchWaterL} L
                 </div>
               </div>
               <div>
-                <span style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>Actual Added</span>
-                <div style={{ fontSize: "1.1rem", fontWeight: "800", color: "var(--text-primary)" }}>
+                <span style={{ fontSize: "0.65rem", color: "var(--text-secondary)" }}>Actual Added</span>
+                <div style={{ fontSize: "0.95rem", fontWeight: "800", color: "var(--text-primary)" }}>
                   {actualWaterNum} L
                 </div>
               </div>
               <div>
-                <span style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>Water Delta</span>
+                <span style={{ fontSize: "0.65rem", color: "var(--text-secondary)" }}>Water Trim</span>
                 <div
                   style={{
-                    fontSize: "1.1rem",
+                    fontSize: "0.95rem",
                     fontWeight: "800",
                     color:
                       waterTruckAdjustment > 0
@@ -1902,75 +1906,75 @@ export default function NewLoadForm({
             </div>
 
             {/* Material Batching Breakdown (Chemicals, Sand, Stone, Cement) */}
-            <div style={{ borderTop: "1px solid var(--glass-border)", paddingTop: "10px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "12px" }}>
+            <div style={{ borderTop: "1px solid var(--glass-border)", paddingTop: "6px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: "6px" }}>
               <div>
-                <span style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>Plasticizer</span>
-                <div style={{ fontSize: "1.1rem", fontWeight: "800", color: "#8b5cf6" }}>
-                  {totalPlasticizerBatchOz} fl oz <span style={{ fontSize: "0.8rem", fontWeight: "600", color: "var(--text-muted)" }}>({Math.round(flOzToMl(totalPlasticizerBatchOz)).toLocaleString()} mL)</span>
+                <span style={{ fontSize: "0.65rem", color: "var(--text-secondary)" }}>Plasticizer</span>
+                <div style={{ fontSize: "0.95rem", fontWeight: "800", color: "#8b5cf6" }}>
+                  {totalPlasticizerBatchOz} fl oz <span style={{ fontSize: "0.72rem", fontWeight: "600", color: "var(--text-muted)" }}>({Math.round(flOzToMl(totalPlasticizerBatchOz)).toLocaleString()} mL)</span>
                 </div>
-                <div style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>
-                  {effPlRate.toFixed(1)} fl oz/yd³ {plasticizerAdjPerYard !== 0 && `(${plasticizerAdjPerYard > 0 ? `+${plasticizerAdjPerYard}` : plasticizerAdjPerYard} oz/yd)`}
+                <div style={{ fontSize: "0.62rem", color: "var(--text-muted)" }}>
+                  {effPlRate.toFixed(1)} oz/yd³
                 </div>
               </div>
               {totalRetarderBatchOz > 0 && (
                 <div>
-                  <span style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>Retarder</span>
-                  <div style={{ fontSize: "1.1rem", fontWeight: "800", color: "#f59e0b" }}>
-                    {totalRetarderBatchOz} fl oz <span style={{ fontSize: "0.8rem", fontWeight: "600", color: "var(--text-muted)" }}>({Math.round(flOzToMl(totalRetarderBatchOz)).toLocaleString()} mL)</span>
+                  <span style={{ fontSize: "0.65rem", color: "var(--text-secondary)" }}>Retarder</span>
+                  <div style={{ fontSize: "0.95rem", fontWeight: "800", color: "#f59e0b" }}>
+                    {totalRetarderBatchOz} fl oz <span style={{ fontSize: "0.72rem", fontWeight: "600", color: "var(--text-muted)" }}>({Math.round(flOzToMl(totalRetarderBatchOz)).toLocaleString()} mL)</span>
                   </div>
-                  <div style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>
-                    {effRetRate.toFixed(1)} fl oz/yd³ {retarderAdjPerYard !== 0 && `(${retarderAdjPerYard > 0 ? `+${retarderAdjPerYard}` : retarderAdjPerYard} oz/yd)`}
+                  <div style={{ fontSize: "0.62rem", color: "var(--text-muted)" }}>
+                    {effRetRate.toFixed(1)} oz/yd³
                   </div>
                 </div>
               )}
               <div>
-                <span style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>Sand Weighed ({sandMoisturePct}% Moist)</span>
-                <div style={{ fontSize: "1.1rem", fontWeight: "800", color: "#e05300" }}>
+                <span style={{ fontSize: "0.65rem", color: "var(--text-secondary)" }}>Sand ({sandMoisturePct}% Moist)</span>
+                <div style={{ fontSize: "0.95rem", fontWeight: "800", color: "#e05300" }}>
                   {actualSandNum} kg
                 </div>
-                <div style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>
-                  Rate: {effSandRate} kg/yd³ {sandTruckAdjustment !== 0 && `(Trim: ${sandTruckAdjustment > 0 ? `+${sandTruckAdjustment}` : sandTruckAdjustment} kg)`}
+                <div style={{ fontSize: "0.62rem", color: "var(--text-muted)" }}>
+                  {effSandRate} kg/yd³
                 </div>
               </div>
               <div>
-                <span style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>¾ Stone Weighed ({stoneMoisturePct}% Moist)</span>
-                <div style={{ fontSize: "1.1rem", fontWeight: "800", color: "#10b981" }}>
+                <span style={{ fontSize: "0.65rem", color: "var(--text-secondary)" }}>¾ Stone ({stoneMoisturePct}% Moist)</span>
+                <div style={{ fontSize: "0.95rem", fontWeight: "800", color: "#10b981" }}>
                   {totalStoneBatchKg} kg
                 </div>
-                <div style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>
-                  {effStoneRate} kg/yd³ {stoneAdjPerYard !== 0 && `(${stoneAdjPerYard > 0 ? `+${stoneAdjPerYard}` : stoneAdjPerYard} kg/yd)`}
+                <div style={{ fontSize: "0.62rem", color: "var(--text-muted)" }}>
+                  {effStoneRate} kg/yd³
                 </div>
               </div>
               {totalStone38BatchKg > 0 && (
                 <div>
-                  <span style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>⅜ Stone Weighed ({stoneMoisturePct}% Moist)</span>
-                  <div style={{ fontSize: "1.1rem", fontWeight: "800", color: "#10b981" }}>
+                  <span style={{ fontSize: "0.65rem", color: "var(--text-secondary)" }}>⅜ Stone ({stoneMoisturePct}% Moist)</span>
+                  <div style={{ fontSize: "0.95rem", fontWeight: "800", color: "#10b981" }}>
                     {totalStone38BatchKg} kg
                   </div>
-                  <div style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>
-                    {effStone38Rate} kg/yd³ {stone38AdjPerYard !== 0 && `(${stone38AdjPerYard > 0 ? `+${stone38AdjPerYard}` : stone38AdjPerYard} kg/yd)`}
+                  <div style={{ fontSize: "0.62rem", color: "var(--text-muted)" }}>
+                    {effStone38Rate} kg/yd³
                   </div>
                 </div>
               )}
               <div>
-                <span style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>Cement Weighed</span>
-                <div style={{ fontSize: "1.1rem", fontWeight: "800", color: "#3b82f6" }}>
+                <span style={{ fontSize: "0.65rem", color: "var(--text-secondary)" }}>Cement</span>
+                <div style={{ fontSize: "0.95rem", fontWeight: "800", color: "#3b82f6" }}>
                   {totalCementBatchKg} kg
                 </div>
-                <div style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>
-                  {effCementRate} kg/yd³ {cementAdjPerYard !== 0 && `(${cementAdjPerYard > 0 ? `+${cementAdjPerYard}` : cementAdjPerYard} kg/yd)`}
+                <div style={{ fontSize: "0.62rem", color: "var(--text-muted)" }}>
+                  {effCementRate} kg/yd³
                 </div>
               </div>
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
+          <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
             <button
               type="button"
               onClick={handlePrevStep}
               className="btn-secondary"
-              style={{ flex: 1, padding: "16px", fontSize: "1rem", fontWeight: "700" }}
+              style={{ flex: 1, padding: "10px 14px", fontSize: "0.9rem", fontWeight: "700", minHeight: "44px" }}
             >
               ← Back
             </button>
@@ -1981,23 +1985,24 @@ export default function NewLoadForm({
               disabled={isSaving}
               style={{
                 flex: 2,
-                padding: "18px 24px",
-                borderRadius: "14px",
+                padding: "10px 18px",
+                borderRadius: "10px",
                 border: "none",
                 background: "linear-gradient(135deg, #e05300 0%, #c2410c 100%)",
                 color: "#fff",
-                fontSize: "1.2rem",
+                fontSize: "1.05rem",
                 fontWeight: "900",
                 fontFamily: "Outfit, sans-serif",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: "10px",
-                boxShadow: "0 8px 25px rgba(224, 83, 0, 0.4)",
+                gap: "8px",
+                boxShadow: "0 4px 16px rgba(224, 83, 0, 0.35)",
+                minHeight: "44px",
               }}
             >
-              <Save size={22} /> {isSaving ? "Saving..." : initialValues?.id ? "UPDATE & SAVE BATCH" : "CONFIRM & LOG BATCH"}
+              <Save size={18} /> {isSaving ? "Saving..." : initialValues?.id ? "SAVE LOAD" : "LOG BATCH"}
             </button>
           </div>
         </div>

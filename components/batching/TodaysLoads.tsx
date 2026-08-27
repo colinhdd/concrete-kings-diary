@@ -58,28 +58,27 @@ export default function TodaysLoads({
   }, [loads, searchTerm, filterMix]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-      {/* Filter and Search Bar */}
-      <div
-        style={{
-          display: "flex",
-          gap: "10px",
-          alignItems: "center",
-          flexWrap: "wrap",
-        }}
-      >
-        <div style={{ position: "relative", flex: 1, minWidth: "200px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+      {/* Top Search & Filter Bar */}
+      <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+        <div style={{ position: "relative", flex: 1 }}>
           <Search
-            size={16}
-            style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }}
+            size={14}
+            style={{
+              position: "absolute",
+              left: "10px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              color: "var(--text-muted)",
+            }}
           />
           <input
             type="text"
             className="form-input"
-            placeholder="Search truck, mix, or condition..."
+            placeholder="Search truck, mix, batch..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ paddingLeft: "36px", fontSize: "0.9rem" }}
+            style={{ paddingLeft: "30px", fontSize: "0.82rem", minHeight: "36px" }}
           />
         </div>
 
@@ -88,7 +87,7 @@ export default function TodaysLoads({
             className="form-select"
             value={filterMix}
             onChange={(e) => setFilterMix(e.target.value)}
-            style={{ width: "auto", minWidth: "130px", fontSize: "0.9rem" }}
+            style={{ width: "auto", minWidth: "110px", fontSize: "0.82rem", minHeight: "36px", padding: "6px 8px" }}
           >
             <option value="all">All Mixes</option>
             {uniqueMixes.map((m) => (
@@ -104,25 +103,25 @@ export default function TodaysLoads({
           className="btn-secondary"
           onClick={onRefresh}
           title="Refresh today's list"
-          style={{ padding: "12px 14px" }}
+          style={{ padding: "8px 10px", minHeight: "36px" }}
         >
-          <RefreshCw size={16} />
+          <RefreshCw size={14} />
         </button>
       </div>
 
       {/* Chronological List of Loads */}
       {filteredLoads.length === 0 ? (
-        <div className="glass-panel empty-state">
-          <Truck size={40} />
-          <div style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--text-primary)" }}>
+        <div className="glass-panel empty-state" style={{ padding: "20px 14px" }}>
+          <Truck size={32} />
+          <div style={{ fontSize: "1rem", fontWeight: "700", color: "var(--text-primary)" }}>
             No Batched Loads Recorded Yet Today
           </div>
-          <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-secondary)", maxWidth: "400px" }}>
+          <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--text-secondary)", maxWidth: "360px" }}>
             Tap the &quot;New Load&quot; button to record your first truck batching record for today&apos;s shift.
           </p>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
           {filteredLoads.map((load) => {
             const obsText = Array.isArray(load.concreteObservations)
               ? load.concreteObservations.join(", ")
@@ -134,34 +133,34 @@ export default function TodaysLoads({
                 onClick={() => onSelectLoad(load)}
                 className="glass-panel"
                 style={{
-                  padding: "14px 16px",
+                  padding: "10px 12px",
                   display: "flex",
                   flexDirection: "column",
-                  gap: "8px",
+                  gap: "6px",
                   cursor: "pointer",
                   opacity: load.isVoid ? 0.6 : 1,
                   borderLeft: load.isVoid
-                    ? "4px solid #ef4444"
+                    ? "3.5px solid #ef4444"
                     : load.waterAdjustment > 100
-                    ? "4px solid #f59e0b"
-                    : "4px solid #1e3c72",
+                    ? "3.5px solid #f59e0b"
+                    : "3.5px solid #1e3c72",
                   transition: "all 0.15s ease",
                 }}
               >
                 {/* Header Row: Truck, Mix, Time, and Badges */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                      <Truck size={16} color="#e05300" />
-                      <span style={{ fontSize: "1.15rem", fontWeight: "900", color: "var(--text-primary)", fontFamily: "Outfit, monospace" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                      <Truck size={14} color="#e05300" />
+                      <span style={{ fontSize: "1.05rem", fontWeight: "900", color: "var(--text-primary)", fontFamily: "Outfit, monospace" }}>
                         {load.truckCode}
                       </span>
                     </div>
                     {load.batchNumber && (
                       <span
                         style={{
-                          fontSize: "0.75rem",
-                          padding: "2px 6px",
+                          fontSize: "0.7rem",
+                          padding: "1px 5px",
                           borderRadius: "4px",
                           backgroundColor: "rgba(59, 130, 246, 0.15)",
                           color: "#3b82f6",
@@ -174,9 +173,9 @@ export default function TodaysLoads({
                     )}
                     <span
                       style={{
-                        fontSize: "0.85rem",
-                        padding: "2px 7px",
-                        borderRadius: "5px",
+                        fontSize: "0.78rem",
+                        padding: "1px 6px",
+                        borderRadius: "4px",
                         backgroundColor: "rgba(224, 83, 0, 0.12)",
                         color: "#e05300",
                         fontWeight: "800",

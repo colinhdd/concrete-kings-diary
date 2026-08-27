@@ -154,27 +154,27 @@ export default function HomeScreen({
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
       {/* Shift Clock-In Status Banner */}
       <div
         className="glass-panel"
         style={{
-          padding: "16px 20px",
+          padding: "10px 14px",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           flexWrap: "wrap",
-          gap: "12px",
+          gap: "8px",
           backgroundColor: isClockedIn ? "rgba(16, 185, 129, 0.06)" : "rgba(245, 158, 11, 0.08)",
           borderLeft: isClockedIn ? "4px solid #10b981" : "4px solid #f59e0b",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <div
             style={{
-              width: "44px",
-              height: "44px",
-              borderRadius: "12px",
+              width: "36px",
+              height: "36px",
+              borderRadius: "10px",
               backgroundColor: isClockedIn ? "rgba(16, 185, 129, 0.15)" : "rgba(245, 158, 11, 0.15)",
               display: "flex",
               alignItems: "center",
@@ -182,17 +182,17 @@ export default function HomeScreen({
               color: isClockedIn ? "#10b981" : "#f59e0b",
             }}
           >
-            {isClockedIn ? <ShieldCheck size={24} /> : <Lock size={22} />}
+            {isClockedIn ? <ShieldCheck size={20} /> : <Lock size={18} />}
           </div>
           <div>
-            <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: "6px" }}>
-              <Calendar size={13} /> {currentDateFormatted}
+            <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: "4px" }}>
+              <Calendar size={12} /> {currentDateFormatted}
             </div>
-            <div style={{ fontSize: "1.1rem", fontWeight: "800", color: "var(--text-primary)" }}>
+            <div style={{ fontSize: "0.95rem", fontWeight: "800", color: "var(--text-primary)" }}>
               {isClockedIn ? (
                 <>
                   {batchingDay?.batcherName}{" "}
-                  <span style={{ fontSize: "0.85rem", color: "#10b981", fontWeight: "700" }}>
+                  <span style={{ fontSize: "0.78rem", color: "#10b981", fontWeight: "700" }}>
                     &bull; Shift Active
                   </span>
                 </>
@@ -208,15 +208,16 @@ export default function HomeScreen({
           onClick={onOpenBatchingDayModal}
           className="btn-secondary"
           style={{
-            fontSize: "0.85rem",
-            padding: "8px 16px",
+            fontSize: "0.78rem",
+            padding: "6px 12px",
             fontWeight: "700",
             backgroundColor: isClockedIn ? "rgba(255,255,255,0.06)" : "#e05300",
             color: isClockedIn ? "var(--text-primary)" : "#fff",
             border: isClockedIn ? "1px solid var(--glass-border)" : "none",
+            minHeight: "34px",
           }}
         >
-          {isClockedIn ? "Shift Details / Clock Out" : "Clock In Daily Shift"}
+          {isClockedIn ? "Shift Details" : "Clock In"}
         </button>
       </div>
 
@@ -226,28 +227,28 @@ export default function HomeScreen({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "8px 14px",
+          padding: "6px 10px",
           background: "rgba(59, 130, 246, 0.08)",
           border: "1px solid rgba(59, 130, 246, 0.2)",
-          borderRadius: "12px",
-          fontSize: "0.78rem",
+          borderRadius: "8px",
+          fontSize: "0.72rem",
           color: "var(--text-secondary)",
           flexWrap: "wrap",
-          gap: "8px",
+          gap: "6px",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
           <div
             style={{
-              width: "8px",
-              height: "8px",
+              width: "7px",
+              height: "7px",
               borderRadius: "50%",
               backgroundColor: "#22c55e",
-              boxShadow: "0 0 8px rgba(34, 197, 94, 0.6)",
+              boxShadow: "0 0 6px rgba(34, 197, 94, 0.6)",
             }}
           />
           <span>
-            <strong style={{ color: "var(--text-primary)" }}>Cooking Station Google Sheet</strong>: {recipesCount} live recipes synced {lastRecipeSyncTime ? `(${lastRecipeSyncTime})` : "(active)"}
+            <strong style={{ color: "var(--text-primary)" }}>Cooking Station</strong>: {recipesCount} live recipes {lastRecipeSyncTime ? `(${lastRecipeSyncTime})` : "(active)"}
           </span>
         </div>
         <button
@@ -262,27 +263,27 @@ export default function HomeScreen({
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
-            gap: "4px",
-            fontSize: "0.75rem",
-            padding: "2px 6px",
+            gap: "3px",
+            fontSize: "0.72rem",
+            padding: "2px 4px",
           }}
         >
-          <Activity size={12} className={isSyncing ? "spin" : ""} /> {isSyncing ? "Syncing Sheet..." : "Pull Latest Sheet"}
+          <Activity size={11} className={isSyncing ? "spin" : ""} /> {isSyncing ? "Syncing..." : "Pull Sheet"}
         </button>
       </div>
 
       {/* ================= PRIMARY ACTION: NEW LOAD & CONVERT LOAD ================= */}
-      <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: "10px", marginTop: "4px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: "8px" }}>
         <button
           type="button"
           onClick={onNewLoad}
           style={{
-            padding: "18px 16px",
-            borderRadius: "16px",
+            padding: "12px 10px",
+            borderRadius: "12px",
             border: "none",
             background: "linear-gradient(135deg, #e05300 0%, #c2410c 100%)",
             color: "#fff",
-            fontSize: "1.35rem",
+            fontSize: "1.1rem",
             fontWeight: "900",
             fontFamily: "Outfit, sans-serif",
             letterSpacing: "0.02em",
@@ -290,25 +291,24 @@ export default function HomeScreen({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            gap: "10px",
-            boxShadow: "0 8px 28px rgba(224, 83, 0, 0.4)",
-            transition: "transform 0.15s ease",
-            minHeight: "56px",
+            gap: "8px",
+            boxShadow: "0 4px 16px rgba(224, 83, 0, 0.3)",
+            minHeight: "44px",
           }}
         >
-          <PlusCircle size={26} /> NEW LOAD
+          <PlusCircle size={20} /> NEW LOAD
         </button>
 
         <button
           type="button"
           onClick={() => onOpenConversion?.()}
           style={{
-            padding: "18px 16px",
-            borderRadius: "16px",
+            padding: "12px 10px",
+            borderRadius: "12px",
             border: "1px solid rgba(59, 130, 246, 0.4)",
             background: "linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.25) 100%)",
             color: "#60a5fa",
-            fontSize: "1.1rem",
+            fontSize: "0.95rem",
             fontWeight: "800",
             fontFamily: "Outfit, sans-serif",
             letterSpacing: "0.01em",
@@ -316,12 +316,11 @@ export default function HomeScreen({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            gap: "8px",
-            transition: "transform 0.15s ease",
-            minHeight: "56px",
+            gap: "6px",
+            minHeight: "44px",
           }}
         >
-          <ArrowLeftRight size={22} /> CONVERT MIX
+          <ArrowLeftRight size={18} /> CONVERT MIX
         </button>
       </div>
 
