@@ -1566,13 +1566,26 @@ export async function getAuditTrailForLoad(loadId: string): Promise<AuditRecord[
 
 export async function getMixDesigns(activeOnly = true): Promise<MixDesign[]> {
   if (!isClient) return DEFAULT_MIX_DESIGNS;
-  const db = await initDB();
-  if (!db) return DEFAULT_MIX_DESIGNS;
+  try {
+    const db = await initDB();
+    if (!db) return DEFAULT_MIX_DESIGNS;
 
-  const all = await db.getAll("mix_designs");
-  if (all.length === 0) return DEFAULT_MIX_DESIGNS;
+    const all = await db.getAll("mix_designs");
+    if (!all || all.length === 0) {
+      const tx = db.transaction("mix_designs", "readwrite");
+      for (const m of DEFAULT_MIX_DESIGNS) {
+        await tx.store.put(m);
+      }
+      await tx.done;
+      return DEFAULT_MIX_DESIGNS;
+    }
 
-  return activeOnly ? all.filter((m) => m.active) : all;
+    const filtered = activeOnly ? all.filter((m) => m.active) : all;
+    return filtered.length > 0 ? filtered : DEFAULT_MIX_DESIGNS;
+  } catch (err) {
+    console.error("Error reading mix designs from IndexedDB:", err);
+    return DEFAULT_MIX_DESIGNS;
+  }
 }
 
 export async function syncRecipesFromCloud(): Promise<MixDesign[]> {

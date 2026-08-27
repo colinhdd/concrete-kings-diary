@@ -33,6 +33,10 @@ import {
   getUnsyncedLoads,
   syncBatchingDataToCloud,
   syncRecipesFromCloud,
+  DEFAULT_MIX_DESIGNS,
+  DEFAULT_TRUCKS,
+  DEFAULT_OBSERVATIONS,
+  DEFAULT_ADJUSTMENTS,
   BatchingDay,
   MoistureReading,
   MixDesign,
@@ -84,10 +88,10 @@ export default function BatchingPortal() {
   const [moistureModalMaterial, setMoistureModalMaterial] = useState<"Sand" | "Stone">("Sand");
   const [todaysLoads, setTodaysLoads] = useState<LoadRecord[]>([]);
   const [allLoads, setAllLoads] = useState<LoadRecord[]>([]);
-  const [mixDesigns, setMixDesigns] = useState<MixDesign[]>([]);
-  const [trucks, setTrucks] = useState<TruckType[]>([]);
-  const [observationOptions, setObservationOptions] = useState<ObservationOption[]>([]);
-  const [adjustmentOptions, setAdjustmentOptions] = useState<AdjustmentOption[]>([]);
+  const [mixDesigns, setMixDesigns] = useState<MixDesign[]>(DEFAULT_MIX_DESIGNS);
+  const [trucks, setTrucks] = useState<TruckType[]>(DEFAULT_TRUCKS);
+  const [observationOptions, setObservationOptions] = useState<ObservationOption[]>(DEFAULT_OBSERVATIONS);
+  const [adjustmentOptions, setAdjustmentOptions] = useState<AdjustmentOption[]>(DEFAULT_ADJUSTMENTS);
   const [unsyncedCount, setUnsyncedCount] = useState<number>(0);
 
   // Sync & Network

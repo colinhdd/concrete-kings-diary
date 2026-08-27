@@ -37,6 +37,7 @@ import {
   saveTruck,
   LoadRecord,
   extractLoadAdjustments,
+  DEFAULT_MIX_DESIGNS,
 } from "@/lib/db-batching";
 import { calculateBatchFormulation } from "@/lib/batching-engine";
 
@@ -155,17 +156,28 @@ export default function NewLoadForm({
   );
   const [manualTruckCode, setManualTruckCode] = useState<string>("");
 
+  const effectiveMixes = useMemo(() => {
+    if (Array.isArray(mixDesigns) && mixDesigns.length > 0) return mixDesigns;
+    return DEFAULT_MIX_DESIGNS;
+  }, [mixDesigns]);
+
   // 2. Mix design selection (defaults to last mix used on this job)
   const defaultMixId = useMemo(() => {
     if (initialValues?.mixDesignId) return initialValues.mixDesignId;
     const prev = findPreviousLoadForJob(defaultJobCode);
-    if (prev?.mixDesignId && mixDesigns.some((m) => m.id === prev.mixDesignId)) {
+    if (prev?.mixDesignId && effectiveMixes.some((m) => m.id === prev.mixDesignId)) {
       return prev.mixDesignId;
     }
-    return mixDesigns.length > 0 ? mixDesigns[0].id : "";
-  }, [initialValues, defaultJobCode, todaysLoads, mixDesigns]);
+    return effectiveMixes.length > 0 ? effectiveMixes[0].id : "";
+  }, [initialValues, defaultJobCode, todaysLoads, effectiveMixes]);
 
   const [selectedMixId, setSelectedMixId] = useState<string>(() => defaultMixId);
+
+  useEffect(() => {
+    if (!selectedMixId && effectiveMixes.length > 0) {
+      setSelectedMixId(effectiveMixes[0].id);
+    }
+  }, [effectiveMixes, selectedMixId]);
 
   // 3. Quantity (yards)
   const [quantity, setQuantity] = useState<number>(
@@ -174,8 +186,8 @@ export default function NewLoadForm({
 
   // Active mix design object
   const activeMix = useMemo(() => {
-    return mixDesigns.find((m) => m.id === selectedMixId) || mixDesigns[0] || null;
-  }, [mixDesigns, selectedMixId]);
+    return effectiveMixes.find((m) => m.id === selectedMixId) || effectiveMixes[0] || null;
+  }, [effectiveMixes, selectedMixId]);
 
   // Active truck object (derived from manual input or selected preset button)
   const activeTruck = useMemo(() => {
@@ -729,7 +741,7 @@ export default function NewLoadForm({
       "Other Mixes": [],
     };
 
-    mixDesigns.forEach((mix) => {
+    effectiveMixes.forEach((mix) => {
       const code = mix.code.toUpperCase();
       if (code.includes("ICC") || code.includes("CAMPBELL")) {
         groups["Client & Project Formulations"].push(mix);
@@ -747,7 +759,7 @@ export default function NewLoadForm({
     });
 
     return Object.entries(groups).filter(([_, list]) => list.length > 0);
-  }, [mixDesigns]);
+  }, [effectiveMixes]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
