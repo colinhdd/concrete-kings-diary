@@ -38,6 +38,7 @@ import {
   LoadRecord,
   extractLoadAdjustments,
   DEFAULT_MIX_DESIGNS,
+  getLocalDateString,
 } from "@/lib/db-batching";
 import { calculateBatchFormulation, mlToFlOz, flOzToMl, ML_PER_FL_OZ } from "@/lib/batching-engine";
 
@@ -145,7 +146,7 @@ export default function NewLoadForm({
     }
   }, [defaultJobCode]);
 
-  const todayDateStr = useMemo(() => new Date().toISOString().split("T")[0], []);
+  const todayDateStr = useMemo(() => getLocalDateString(), []);
   const currentBatchNumber = useMemo(() => {
     return generateBatchNumber(todayDateStr, jobCode);
   }, [todayDateStr, jobCode]);
@@ -1025,71 +1026,90 @@ export default function NewLoadForm({
             </div>
           </div>
 
-          <p style={{ margin: "2px 0 0", fontSize: "0.78rem", color: "var(--text-secondary)" }}>
-            Select mixer truck plate or enter manually:
-          </p>
-
-          {/* Quick license plate buttons grid */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))",
-              gap: "6px",
-            }}
-          >
-            {trucks.map((t) => {
-              const isSelected = !manualTruckCode.trim() && selectedTruckId === t.id;
-              return (
-                <button
-                  type="button"
-                  key={t.id}
-                  onClick={() => {
-                    setSelectedTruckId(t.id);
-                    setManualTruckCode("");
-                  }}
-                  style={{
-                    padding: "8px 4px",
-                    borderRadius: "8px",
-                    border: isSelected ? "2px solid #e05300" : "1px solid var(--glass-border)",
-                    backgroundColor: isSelected ? "rgba(224, 83, 0, 0.22)" : "var(--bg-tertiary)",
-                    color: isSelected ? "#e05300" : "var(--text-primary)",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    transition: "all 0.15s ease",
-                    minHeight: "40px",
-                  }}
-                >
-                  <span style={{ fontSize: "1rem", fontWeight: "900", letterSpacing: "0.02em" }}>
-                    {t.code}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Manual license plate input */}
-          <div style={{ marginTop: "4px" }}>
-            <label style={{ display: "block", fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "4px", fontWeight: "700" }}>
-              Or Manually Enter Plate Number:
-            </label>
-            <input
-              type="text"
-              className="form-input"
-              placeholder="e.g. CT3617, CU2573..."
-              value={manualTruckCode}
-              onChange={(e) => setManualTruckCode(e.target.value.toUpperCase())}
+          {/* Mixer Truck License Plate Dropdown Selector */}
+          <div>
+            <label
               style={{
-                fontSize: "0.95rem",
-                fontWeight: "800",
-                letterSpacing: "0.03em",
-                padding: "8px 12px",
-                border: manualTruckCode.trim() ? "2px solid #e05300" : "1px solid var(--glass-border)",
-                minHeight: "38px",
+                display: "block",
+                fontSize: "0.75rem",
+                color: "var(--text-secondary)",
+                marginBottom: "4px",
+                fontWeight: "700",
+                textTransform: "uppercase",
+                letterSpacing: "0.04em",
               }}
-            />
+            >
+              Mixer Truck License Plate:
+            </label>
+            <select
+              className="form-input"
+              value={manualTruckCode.trim() ? "__custom__" : (selectedTruckId || (trucks.length > 0 ? trucks[0].id : ""))}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === "__custom__") {
+                  setSelectedTruckId("");
+                  if (!manualTruckCode) setManualTruckCode("");
+                } else {
+                  setSelectedTruckId(val);
+                  setManualTruckCode("");
+                }
+              }}
+              style={{
+                width: "100%",
+                fontSize: "1rem",
+                fontWeight: "800",
+                padding: "8px 12px",
+                minHeight: "42px",
+                backgroundColor: "var(--bg-secondary)",
+                color: "var(--text-primary)",
+                border: "1px solid var(--glass-border)",
+                borderRadius: "8px",
+                cursor: "pointer",
+                letterSpacing: "0.02em",
+              }}
+            >
+              <option value="" disabled>-- Select Truck License Plate --</option>
+              {trucks.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.code} {t.driver ? `• ${t.driver}` : ""} ({t.capacityYards || 10} yd³)
+                </option>
+              ))}
+              <option value="__custom__">➕ Other / Custom Plate...</option>
+            </select>
           </div>
+
+          {/* Custom license plate input if __custom__ selected */}
+          {(manualTruckCode.trim() || selectedTruckId === "" || selectedTruckId === "__custom__") && (
+            <div style={{ marginTop: "2px" }}>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: "0.72rem",
+                  color: "#e05300",
+                  marginBottom: "4px",
+                  fontWeight: "700",
+                }}
+              >
+                Enter Custom License Plate:
+              </label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="e.g. CT3617, CU2573..."
+                value={manualTruckCode}
+                onChange={(e) => setManualTruckCode(e.target.value.toUpperCase())}
+                autoFocus={selectedTruckId === "__custom__"}
+                style={{
+                  fontSize: "0.95rem",
+                  fontWeight: "800",
+                  letterSpacing: "0.03em",
+                  padding: "8px 12px",
+                  border: "2px solid #e05300",
+                  minHeight: "38px",
+                }}
+              />
+            </div>
+          )}
 
           {/* Wizard Next Button */}
           <div style={{ marginTop: "10px", display: "flex", justifyContent: "flex-end" }}>
