@@ -15,6 +15,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   Wrench,
+  ArrowLeftRight,
 } from "lucide-react";
 import { BatchingDay, MoistureReading, LoadRecord } from "@/lib/db-batching";
 import ClockInGate from "./ClockInGate";
@@ -30,6 +31,7 @@ interface HomeScreenProps {
   unsyncedCount: number;
   isSyncing: boolean;
   onNewLoad: () => void;
+  onOpenConversion?: (load?: LoadRecord) => void;
   onRepeatLastLoad: () => void;
   onOpenMoistureModal: () => void;
   onViewTodaysLoads: () => void;
@@ -49,6 +51,7 @@ export default function HomeScreen({
   unsyncedCount,
   isSyncing,
   onNewLoad,
+  onOpenConversion,
   onRepeatLastLoad,
   onOpenMoistureModal,
   onViewTodaysLoads,
@@ -213,8 +216,8 @@ export default function HomeScreen({
         </button>
       </div>
 
-      {/* ================= PRIMARY ACTION: NEW LOAD ================= */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "4px" }}>
+      {/* ================= PRIMARY ACTION: NEW LOAD & CONVERT LOAD ================= */}
+      <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: "10px", marginTop: "4px" }}>
         <button
           type="button"
           onClick={onNewLoad}
@@ -224,7 +227,7 @@ export default function HomeScreen({
             border: "none",
             background: "linear-gradient(135deg, #e05300 0%, #c2410c 100%)",
             color: "#fff",
-            fontSize: "1.45rem",
+            fontSize: "1.35rem",
             fontWeight: "900",
             fontFamily: "Outfit, sans-serif",
             letterSpacing: "0.02em",
@@ -232,13 +235,38 @@ export default function HomeScreen({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            gap: "12px",
+            gap: "10px",
             boxShadow: "0 8px 28px rgba(224, 83, 0, 0.4)",
             transition: "transform 0.15s ease",
             minHeight: "56px",
           }}
         >
-          <PlusCircle size={28} /> NEW LOAD
+          <PlusCircle size={26} /> NEW LOAD
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onOpenConversion?.()}
+          style={{
+            padding: "18px 16px",
+            borderRadius: "16px",
+            border: "1px solid rgba(59, 130, 246, 0.4)",
+            background: "linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.25) 100%)",
+            color: "#60a5fa",
+            fontSize: "1.1rem",
+            fontWeight: "800",
+            fontFamily: "Outfit, sans-serif",
+            letterSpacing: "0.01em",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
+            transition: "transform 0.15s ease",
+            minHeight: "56px",
+          }}
+        >
+          <ArrowLeftRight size={22} /> CONVERT MIX
         </button>
       </div>
 

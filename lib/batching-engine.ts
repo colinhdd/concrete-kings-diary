@@ -392,3 +392,376 @@ export function calculateBatchFormulation(
     yieldStatus,
   };
 }
+
+export interface MixConversionInput {
+  sourceMix: MasterRecipe;
+  sourceVolume: number; // Volume currently in truck (CYD)
+  targetMix: MasterRecipe;
+  targetVolume: number; // Final target volume wanted in truck (CYD)
+  sandMoisturePct?: number; // Stockpile sand moisture % (e.g. 2.0 or 3.0)
+  stoneMoisturePct?: number; // Stockpile stone moisture % (e.g. 1.0)
+  sourceAdjustments?: MaterialAdjustments;
+  targetAdjustments?: MaterialAdjustments;
+  pantry?: PantrySpecificGravities;
+  cementCode?: string;
+  sourceBatchedActuals?: {
+    actualCement?: number;
+    actualSandDry?: number;
+    actualS34Dry?: number;
+    actualS38Dry?: number;
+    actualTotalWater?: number;
+    actualPlasticizer?: number;
+    actualRetarder?: number;
+  };
+}
+
+export interface MaterialDelta {
+  existing: number; // Amount currently in the drum
+  targetRequired: number; // Total amount needed in final batch
+  toAdd: number; // Non-negative amount to add into mixer: Math.max(0, target - existing)
+  surplus: number; // If existing > target, excess in drum
+  unit: string;
+}
+
+export interface MixConversionOutput {
+  sourceVolume: number;
+  targetVolume: number;
+  addedVolume: number; // targetVolume - sourceVolume
+
+  // What to dose into the mixer
+  dosing: {
+    cementKg: number;
+    // Sand weighing (with moisture)
+    drySandKg: number;
+    wetSandToWeighKg: number;
+    waterInAddedSandL: number;
+    // Stone weighing
+    dryS34Kg: number;
+    wetS34ToWeighKg: number;
+    dryS38Kg: number;
+    wetS38ToWeighKg: number;
+    waterInAddedStoneL: number;
+    // Water dosing
+    totalWaterNeededL: number;
+    waterInAddedAggregatesL: number;
+    targetWaterToMixerExactL: number;
+    waterToMixerL: number; // Rounded down to 50 L
+    // Admixtures
+    plasticizerFlOz: number;
+    retarderFlOz: number;
+  };
+
+  // Material-by-material breakdown
+  materials: {
+    cement: MaterialDelta;
+    sandDry: MaterialDelta;
+    stone34Dry: MaterialDelta;
+    stone38Dry: MaterialDelta;
+    totalWater: MaterialDelta;
+    plasticizer: MaterialDelta;
+    retarder: MaterialDelta;
+  };
+
+  // Resulting Converted Mix Physics vs Target Standard Mix
+  analysis: {
+    isExact1to1: boolean;
+    hasSurplusCement: boolean;
+    hasSurplusWater: boolean;
+    notes: string[];
+
+    // Target Standard Recipe metrics
+    targetStandard: {
+      cementPerYard: number;
+      wcRatio: number;
+      sandPct: number;
+      stonePct: number;
+      strengthPSI: number;
+    };
+
+    // Resulting Converted Concrete in Truck
+    resulting: {
+      totalCementKg: number;
+      effectiveCementPerYard: number;
+      totalWaterL: number;
+      effectiveWaterPerYard: number;
+      wcRatio: number;
+      wcStatus: "Optimal" | "Acceptable" | "High";
+      sandPct: number;
+      stonePct: number;
+      aggregateRatioFormatted: string;
+      predictedStrength28dPSI: number;
+      yieldCYD: number;
+      yieldStatus: "On Target" | "Under-yielding" | "Over-yielding";
+    };
+  };
+}
+
+/**
+ * Calculates exact material additions required to transform an existing drum load
+ * (Source Mix & Volume) into a new target load (Target Mix & Total Volume).
+ */
+export function calculateMixConversion(input: MixConversionInput): MixConversionOutput {
+  const {
+    sourceMix,
+    sourceVolume,
+    targetMix,
+    targetVolume,
+    sandMoisturePct = 3.0,
+    stoneMoisturePct = 1.0,
+    sourceAdjustments = {},
+    targetAdjustments = {},
+    pantry = {},
+    cementCode = "carib_type1",
+    sourceBatchedActuals,
+  } = input;
+
+  const sg = { ...DEFAULT_PANTRY_SG, ...pantry };
+  const cementProfile = DEFAULT_CEMENT_COAS[cementCode] || DEFAULT_CEMENT_COAS.carib_type1;
+  const addedVolume = Math.max(0, targetVolume - sourceVolume);
+
+  // 1. Effective Rates for Source & Target Mixes
+  const srcCementRate = Math.max(0, sourceMix.cement + (sourceAdjustments.cementPerYard || 0));
+  const srcSandRate = Math.max(0, sourceMix.sand + (sourceAdjustments.sandPerYard || 0));
+  const srcS34Rate = Math.max(0, sourceMix.threeQuarterStone + (sourceAdjustments.threeQuarterStonePerYard || 0));
+  const srcS38Rate = Math.max(0, (sourceMix.threeEighthStone || 0) + (sourceAdjustments.threeEighthStonePerYard || 0));
+  const srcWaterRate = Math.max(0, sourceMix.designWater + (sourceAdjustments.waterPerYard || 0));
+  const srcBasePl = (sourceMix.plasticizer || 0) >= 50 ? (sourceMix.plasticizer || 0) / 29.5735296 : (sourceMix.plasticizer || 0);
+  const srcBaseRet = (sourceMix.retarder || 0) >= 50 ? (sourceMix.retarder || 0) / 29.5735296 : (sourceMix.retarder || 0);
+  const srcPlRate = Math.max(0, srcBasePl + (sourceAdjustments.plasticizerPerYard || 0));
+  const srcRetRate = Math.max(0, srcBaseRet + (sourceAdjustments.retarderPerYard || 0));
+
+  const tgtCementRate = Math.max(0, targetMix.cement + (targetAdjustments.cementPerYard || 0));
+  const tgtSandRate = Math.max(0, targetMix.sand + (targetAdjustments.sandPerYard || 0));
+  const tgtS34Rate = Math.max(0, targetMix.threeQuarterStone + (targetAdjustments.threeQuarterStonePerYard || 0));
+  const tgtS38Rate = Math.max(0, (targetMix.threeEighthStone || 0) + (targetAdjustments.threeEighthStonePerYard || 0));
+  const tgtWaterRate = Math.max(0, targetMix.designWater + (targetAdjustments.waterPerYard || 0));
+  const tgtBasePl = (targetMix.plasticizer || 0) >= 50 ? (targetMix.plasticizer || 0) / 29.5735296 : (targetMix.plasticizer || 0);
+  const tgtBaseRet = (targetMix.retarder || 0) >= 50 ? (targetMix.retarder || 0) / 29.5735296 : (targetMix.retarder || 0);
+  const tgtPlRate = Math.max(0, tgtBasePl + (targetAdjustments.plasticizerPerYard || 0));
+  const tgtRetRate = Math.max(0, tgtBaseRet + (targetAdjustments.retarderPerYard || 0));
+
+  // 2. Existing amounts in the drum (Source Load)
+  const existingCement = sourceBatchedActuals?.actualCement ?? Math.round(srcCementRate * sourceVolume);
+  const existingSandDry = sourceBatchedActuals?.actualSandDry ?? Math.round(srcSandRate * sourceVolume);
+  const existingS34Dry = sourceBatchedActuals?.actualS34Dry ?? Math.round(srcS34Rate * sourceVolume);
+  const existingS38Dry = sourceBatchedActuals?.actualS38Dry ?? Math.round(srcS38Rate * sourceVolume);
+  const existingTotalWater = sourceBatchedActuals?.actualTotalWater ?? Math.round(srcWaterRate * sourceVolume);
+  const existingPl = sourceBatchedActuals?.actualPlasticizer ?? Math.round(srcPlRate * sourceVolume);
+  const existingRet = sourceBatchedActuals?.actualRetarder ?? Math.round(srcRetRate * sourceVolume);
+
+  // 3. Target requirements for the entire target volume
+  const targetRequiredCement = Math.round(tgtCementRate * targetVolume);
+  const targetRequiredSandDry = Math.round(tgtSandRate * targetVolume);
+  const targetRequiredS34Dry = Math.round(tgtS34Rate * targetVolume);
+  const targetRequiredS38Dry = Math.round(tgtS38Rate * targetVolume);
+  const targetRequiredTotalWater = Math.round(tgtWaterRate * targetVolume);
+  const targetRequiredPl = Math.round(tgtPlRate * targetVolume);
+  const targetRequiredRet = Math.round(tgtRetRate * targetVolume);
+
+  // 4. Net Dry/Pure Materials to add (Non-negative)
+  const cementToAdd = Math.max(0, targetRequiredCement - existingCement);
+  const sandDryToAdd = Math.max(0, targetRequiredSandDry - existingSandDry);
+  const s34DryToAdd = Math.max(0, targetRequiredS34Dry - existingS34Dry);
+  const s38DryToAdd = Math.max(0, targetRequiredS38Dry - existingS38Dry);
+  const plToAdd = Math.max(0, targetRequiredPl - existingPl);
+  const retToAdd = Math.max(0, targetRequiredRet - existingRet);
+
+  // 5. Aggregate moisture compensation & weighing
+  const mSand = Math.max(0, sandMoisturePct) / 100;
+  const wetSandToWeigh = mSand < 1 ? Math.round(sandDryToAdd / (1 - mSand)) : sandDryToAdd;
+  const waterInAddedSand = Math.round(wetSandToWeigh * mSand);
+
+  const mStone = Math.max(0, stoneMoisturePct) / 100;
+  const wetS34ToWeigh = mStone < 1 ? Math.round(s34DryToAdd / (1 - mStone)) : s34DryToAdd;
+  const wetS38ToWeigh = mStone < 1 ? Math.round(s38DryToAdd / (1 - mStone)) : s38DryToAdd;
+  const waterInAddedStone = Math.round((wetS34ToWeigh + wetS38ToWeigh) * mStone);
+
+  const waterInAddedAggregates = waterInAddedSand + waterInAddedStone;
+
+  // 6. Water dosing
+  const totalWaterNeeded = Math.max(0, targetRequiredTotalWater - existingTotalWater);
+  const targetWaterToMixerExact = Math.max(0, totalWaterNeeded - waterInAddedAggregates);
+  const waterToMixer = Math.floor(targetWaterToMixerExact / 50) * 50;
+
+  // 7. Resulting Final Batched Masses in Drum
+  const resultingCementTotal = existingCement + cementToAdd;
+  const resultingSandDryTotal = existingSandDry + sandDryToAdd;
+  const resultingS34DryTotal = existingS34Dry + s34DryToAdd;
+  const resultingS38DryTotal = existingS38Dry + s38DryToAdd;
+  const resultingWaterTotal = existingTotalWater + waterToMixer + waterInAddedAggregates;
+  const resultingPlTotal = existingPl + plToAdd;
+  const resultingRetTotal = existingRet + retToAdd;
+
+  // 8. Resulting Physics, Yield & Quality Analysis
+  const cementVolM3 = resultingCementTotal / (sg.cementSG * 1000);
+  const waterVolM3 = resultingWaterTotal / (sg.waterSG * 1000);
+  const sandDryVolM3 = resultingSandDryTotal / (sg.sandSG * 1000);
+  const s34VolM3 = resultingS34DryTotal / (sg.s34SG * 1000);
+  const s38VolM3 = resultingS38DryTotal / (sg.s38SG * 1000);
+  const plVolM3 = (resultingPlTotal * 0.0295735296) / 1000;
+  const retVolM3 = (resultingRetTotal * 0.0295735296) / 1000;
+
+  const solidAndLiquidVolM3 =
+    cementVolM3 + waterVolM3 + sandDryVolM3 + s34VolM3 + s38VolM3 + plVolM3 + retVolM3;
+
+  const airPct = targetMix.airTargetPct !== undefined ? targetMix.airTargetPct : (sg.airTargetPct ?? 1.0);
+  const airFraction = Math.max(0, Math.min(0.20, airPct / 100));
+  const totalVolM3 = airFraction < 1 ? solidAndLiquidVolM3 / (1 - airFraction) : solidAndLiquidVolM3;
+  const yieldCYD = Math.round(totalVolM3 * 1.30795062 * 100) / 100;
+  const yieldDiffRatio = targetVolume > 0 ? (yieldCYD - targetVolume) / targetVolume : 0;
+
+  let yieldStatus: "On Target" | "Under-yielding" | "Over-yielding" = "On Target";
+  if (yieldDiffRatio < -0.02) yieldStatus = "Under-yielding";
+  else if (yieldDiffRatio > 0.02) yieldStatus = "Over-yielding";
+
+  const resultingWcRatio = resultingCementTotal > 0 ? Math.round((resultingWaterTotal / resultingCementTotal) * 1000) / 1000 : 0;
+  const targetStandardWc = tgtCementRate > 0 ? Math.round((tgtWaterRate / tgtCementRate) * 1000) / 1000 : 0.50;
+
+  let wcStatus: "Optimal" | "Acceptable" | "High" = "Optimal";
+  if (resultingWcRatio > targetStandardWc + 0.05) wcStatus = "High";
+  else if (resultingWcRatio > targetStandardWc) wcStatus = "Acceptable";
+
+  // Strength Prediction (Abrams Law)
+  const strengthAdj = Math.pow(8, cementProfile.wcTypical - resultingWcRatio);
+  const parsedTargetPSI = targetMix.strength ? parseInt(targetMix.strength.replace(/[^0-9]/g, ""), 10) : 3000;
+  const designPSI = parsedTargetPSI && parsedTargetPSI >= 1500 ? parsedTargetPSI : 3000;
+  const predictedStrength28dPSI = Math.round((designPSI * strengthAdj) / 10) * 10;
+
+  // Aggregate Ratio
+  const totalAggDry = resultingSandDryTotal + (resultingS34DryTotal + resultingS38DryTotal);
+  const sandPct = totalAggDry > 0 ? Math.round((resultingSandDryTotal / totalAggDry) * 100) : 55;
+  const stonePct = 100 - sandPct;
+
+  const targetTotalAgg = tgtSandRate + (tgtS34Rate + tgtS38Rate);
+  const tgtSandPct = targetTotalAgg > 0 ? Math.round((tgtSandRate / targetTotalAgg) * 100) : 55;
+  const tgtStonePct = 100 - tgtSandPct;
+
+  // Discrepancy & Stoichiometry Analysis Notes
+  const notes: string[] = [];
+  const hasSurplusCement = existingCement > targetRequiredCement;
+  const hasSurplusWater = existingTotalWater > targetRequiredTotalWater;
+
+  if (hasSurplusCement) {
+    const surplusKg = existingCement - targetRequiredCement;
+    const effCementPerYd = Math.round(resultingCementTotal / targetVolume);
+    notes.push(
+      `⚡ Cement Surplus (+${surplusKg} kg): The drum contains more cement than standard ${targetMix.code}. Resulting cement content is ${effCementPerYd} kg/yd³ (target: ${tgtCementRate} kg/yd³), which delivers higher compressive strength.`
+    );
+  }
+
+  if (hasSurplusWater) {
+    const surplusL = existingTotalWater - targetRequiredTotalWater;
+    notes.push(
+      `💧 Water In Drum (+${surplusL} L): Source load had higher water than needed for target mix. No extra water added; W/C is ${resultingWcRatio}.`
+    );
+  }
+
+  if (targetVolume === sourceVolume && sourceMix.id !== targetMix.id) {
+    notes.push(
+      `ℹ️ Same-Volume Mix Upgrade: Rebalancing ${sourceVolume} yd³ in place from ${sourceMix.code} to ${targetMix.code}.`
+    );
+  }
+
+  const isExact1to1 = !hasSurplusCement && !hasSurplusWater && Math.abs(yieldDiffRatio) <= 0.015;
+
+  return {
+    sourceVolume,
+    targetVolume,
+    addedVolume,
+    dosing: {
+      cementKg: cementToAdd,
+      drySandKg: sandDryToAdd,
+      wetSandToWeighKg: wetSandToWeigh,
+      waterInAddedSandL: waterInAddedSand,
+      dryS34Kg: s34DryToAdd,
+      wetS34ToWeighKg: wetS34ToWeigh,
+      dryS38Kg: s38DryToAdd,
+      wetS38ToWeighKg: wetS38ToWeigh,
+      waterInAddedStoneL: waterInAddedStone,
+      totalWaterNeededL: totalWaterNeeded,
+      waterInAddedAggregatesL: waterInAddedAggregates,
+      targetWaterToMixerExactL: targetWaterToMixerExact,
+      waterToMixerL: waterToMixer,
+      plasticizerFlOz: plToAdd,
+      retarderFlOz: retToAdd,
+    },
+    materials: {
+      cement: {
+        existing: existingCement,
+        targetRequired: targetRequiredCement,
+        toAdd: cementToAdd,
+        surplus: Math.max(0, existingCement - targetRequiredCement),
+        unit: "kg",
+      },
+      sandDry: {
+        existing: existingSandDry,
+        targetRequired: targetRequiredSandDry,
+        toAdd: sandDryToAdd,
+        surplus: Math.max(0, existingSandDry - targetRequiredSandDry),
+        unit: "kg dry",
+      },
+      stone34Dry: {
+        existing: existingS34Dry,
+        targetRequired: targetRequiredS34Dry,
+        toAdd: s34DryToAdd,
+        surplus: Math.max(0, existingS34Dry - targetRequiredS34Dry),
+        unit: "kg dry",
+      },
+      stone38Dry: {
+        existing: existingS38Dry,
+        targetRequired: targetRequiredS38Dry,
+        toAdd: s38DryToAdd,
+        surplus: Math.max(0, existingS38Dry - targetRequiredS38Dry),
+        unit: "kg dry",
+      },
+      totalWater: {
+        existing: existingTotalWater,
+        targetRequired: targetRequiredTotalWater,
+        toAdd: waterToMixer + waterInAddedAggregates,
+        surplus: Math.max(0, existingTotalWater - targetRequiredTotalWater),
+        unit: "L",
+      },
+      plasticizer: {
+        existing: existingPl,
+        targetRequired: targetRequiredPl,
+        toAdd: plToAdd,
+        surplus: Math.max(0, existingPl - targetRequiredPl),
+        unit: "fl oz",
+      },
+      retarder: {
+        existing: existingRet,
+        targetRequired: targetRequiredRet,
+        toAdd: retToAdd,
+        surplus: Math.max(0, existingRet - targetRequiredRet),
+        unit: "fl oz",
+      },
+    },
+    analysis: {
+      isExact1to1,
+      hasSurplusCement,
+      hasSurplusWater,
+      notes,
+      targetStandard: {
+        cementPerYard: tgtCementRate,
+        wcRatio: targetStandardWc,
+        sandPct: tgtSandPct,
+        stonePct: tgtStonePct,
+        strengthPSI: designPSI,
+      },
+      resulting: {
+        totalCementKg: resultingCementTotal,
+        effectiveCementPerYard: Math.round(resultingCementTotal / targetVolume),
+        totalWaterL: resultingWaterTotal,
+        effectiveWaterPerYard: Math.round(resultingWaterTotal / targetVolume),
+        wcRatio: resultingWcRatio,
+        wcStatus,
+        sandPct,
+        stonePct,
+        aggregateRatioFormatted: `${sandPct}:${stonePct}`,
+        predictedStrength28dPSI,
+        yieldCYD,
+        yieldStatus,
+      },
+    },
+  };
+}

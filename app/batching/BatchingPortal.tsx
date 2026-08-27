@@ -17,6 +17,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   ClipboardCheck,
+  ArrowLeftRight,
 } from "lucide-react";
 import {
   initDB,
@@ -44,13 +45,15 @@ import HomeScreen from "@/components/batching/HomeScreen";
 import NewLoadForm from "@/components/batching/NewLoadForm";
 import ObservationReview from "@/components/batching/ObservationReview";
 import TodaysLoads from "@/components/batching/TodaysLoads";
+import MixConversionCalculator from "@/components/batching/MixConversionCalculator";
 import MoistureModal from "@/components/batching/MoistureModal";
 import BatchingDayModal from "@/components/batching/BatchingDayModal";
 import LoadDetailModal from "@/components/batching/LoadDetailModal";
 
 export default function BatchingPortal() {
   // Navigation
-  const [activeTab, setActiveTab] = useState<"home" | "new-load" | "todays-loads" | "review">("home");
+  const [activeTab, setActiveTab] = useState<"home" | "new-load" | "todays-loads" | "review" | "convert">("home");
+  const [conversionSourceLoad, setConversionSourceLoad] = useState<LoadRecord | null>(null);
 
   // State
   const [batchingDay, setBatchingDay] = useState<BatchingDay | null>(null);
@@ -279,6 +282,11 @@ export default function BatchingPortal() {
     setActiveTab("new-load");
   };
 
+  const handleOpenConversion = (load?: LoadRecord) => {
+    setConversionSourceLoad(load || null);
+    setActiveTab("convert");
+  };
+
   const handleEditLoadFromDetail = (load: LoadRecord) => {
     setSelectedLoadForDetail(null);
     setRepeatLoadData(load);
@@ -489,6 +497,7 @@ export default function BatchingPortal() {
             isSyncing={isSyncing}
             onNewLoad={handleStartNewLoad}
             onRepeatLastLoad={handleRepeatLastLoad}
+            onOpenConversion={handleOpenConversion}
             onOpenMoistureModal={() => handleOpenMoistureModal("Sand")}
             onViewTodaysLoads={() => setActiveTab("todays-loads")}
             onTriggerSync={handleTriggerSync}
@@ -528,6 +537,17 @@ export default function BatchingPortal() {
           />
         )}
 
+        {activeTab === "convert" && (
+          <MixConversionCalculator
+            mixDesigns={mixDesigns.filter((m) => m.active)}
+            todaysLoads={todaysLoads}
+            currentSandMoisture={currentSandMoisture}
+            currentStoneMoisture={currentStoneMoisture}
+            initialSourceLoad={conversionSourceLoad}
+            onNavigateToDashboard={() => setActiveTab("home")}
+          />
+        )}
+
         {activeTab === "review" && (
           <ObservationReview
             todaysLoads={todaysLoads}
@@ -545,6 +565,7 @@ export default function BatchingPortal() {
             loads={todaysLoads}
             onSelectLoad={(load) => setSelectedLoadForDetail(load)}
             onRepeatLoad={handleRepeatSpecificLoad}
+            onConvertLoad={handleOpenConversion}
             onRefresh={refreshLocalData}
           />
         )}
@@ -561,6 +582,20 @@ export default function BatchingPortal() {
             <Layers size={20} />
           </div>
           <span>Batching</span>
+        </button>
+
+        <button
+          type="button"
+          className={`tab-button ${activeTab === "convert" ? "active" : ""}`}
+          onClick={() => {
+            setConversionSourceLoad(null);
+            setActiveTab("convert");
+          }}
+        >
+          <div className="tab-icon-wrapper">
+            <ArrowLeftRight size={20} />
+          </div>
+          <span>Convert</span>
         </button>
 
         <button

@@ -12,6 +12,8 @@ import {
   Copy,
   ChevronRight,
   Sparkles,
+  RotateCcw,
+  ArrowLeftRight,
 } from "lucide-react";
 import { LoadRecord } from "@/lib/db-batching";
 
@@ -19,6 +21,7 @@ interface TodaysLoadsProps {
   loads: LoadRecord[];
   onSelectLoad: (load: LoadRecord) => void;
   onRepeatLoad: (load: LoadRecord) => void;
+  onConvertLoad?: (load: LoadRecord) => void;
   onRefresh: () => void;
 }
 
@@ -26,6 +29,7 @@ export default function TodaysLoads({
   loads,
   onSelectLoad,
   onRepeatLoad,
+  onConvertLoad,
   onRefresh,
 }: TodaysLoadsProps) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -225,11 +229,38 @@ export default function TodaysLoads({
                   </span>
                 </div>
 
-                {/* Bottom Row: Observations */}
-                <div style={{ paddingTop: "4px", borderTop: "1px solid var(--glass-border)" }}>
-                  <div style={{ fontSize: "0.78rem", color: "var(--text-secondary)", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
+                {/* Bottom Row: Observations & Quick Actions */}
+                <div style={{ paddingTop: "6px", borderTop: "1px solid var(--glass-border)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                  <div style={{ fontSize: "0.78rem", color: "var(--text-secondary)", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap", flex: 1 }}>
                     {load.isVoid ? `[VOIDED: ${load.voidReason}]` : obsText || "Condition: Normal"}
                   </div>
+
+                  {!load.isVoid && (
+                    <div style={{ display: "flex", gap: "6px" }}>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onConvertLoad?.(load);
+                        }}
+                        style={{
+                          fontSize: "0.72rem",
+                          fontWeight: "700",
+                          padding: "3px 8px",
+                          borderRadius: "6px",
+                          background: "rgba(59, 130, 246, 0.15)",
+                          border: "1px solid rgba(59, 130, 246, 0.3)",
+                          color: "#60a5fa",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "4px",
+                        }}
+                      >
+                        <ArrowLeftRight size={11} /> Convert Mix
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             );
