@@ -107,12 +107,24 @@ function parseRecipesFromRows(rows: string[][]): MixDesign[] {
 }
 
 export async function GET(request: NextRequest) {
-  // Method 1: Try Direct Public/Export CSV fetch (fastest, zero auth failure risk)
+  const timestamp = Date.now();
+  const headers = {
+    "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+    "CDN-Cache-Control": "no-store",
+    "Surrogate-Control": "no-store",
+    "Pragma": "no-cache",
+    "Expires": "0",
+  };
+
+  // Method 1: Try Direct Public/Export CSV fetch (fastest, zero auth failure risk) with live cache buster
   try {
-    const exportUrl = `https://docs.google.com/spreadsheets/d/${COOK_BOOK_SPREADSHEET_ID}/export?format=csv&gid=${COOK_BOOK_GID}`;
+    const exportUrl = `https://docs.google.com/spreadsheets/d/${COOK_BOOK_SPREADSHEET_ID}/export?format=csv&gid=${COOK_BOOK_GID}&_cb=${timestamp}`;
     const csvRes = await fetch(exportUrl, {
       cache: "no-store",
-      headers: { "Cache-Control": "no-cache" },
+      headers: {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+      },
     });
 
     if (csvRes.ok) {
@@ -120,14 +132,18 @@ export async function GET(request: NextRequest) {
       const rows = parseCsvRows(csvText);
       const recipes = parseRecipesFromRows(rows);
       if (recipes.length > 0) {
-        return NextResponse.json({
-          success: true,
-          source: "google_sheet_csv",
-          spreadsheetId: COOK_BOOK_SPREADSHEET_ID,
-          gid: COOK_BOOK_GID,
-          count: recipes.length,
-          recipes,
-        });
+        return NextResponse.json(
+          {
+            success: true,
+            source: "google_sheet_csv",
+            spreadsheetId: COOK_BOOK_SPREADSHEET_ID,
+            gid: COOK_BOOK_GID,
+            count: recipes.length,
+            recipes,
+            syncedAt: new Date().toISOString(),
+          },
+          { headers }
+        );
       }
     }
   } catch (csvErr) {
@@ -152,14 +168,18 @@ export async function GET(request: NextRequest) {
 
     const recipes = parseRecipesFromRows(rows as string[][]);
 
-    return NextResponse.json({
-      success: true,
-      source: "google_sheets_api",
-      spreadsheetId: COOK_BOOK_SPREADSHEET_ID,
-      tabTitle,
-      count: recipes.length,
-      recipes,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        source: "google_sheets_api",
+        spreadsheetId: COOK_BOOK_SPREADSHEET_ID,
+        tabTitle,
+        count: recipes.length,
+        recipes,
+        syncedAt: new Date().toISOString(),
+      },
+      { headers }
+    );
   } catch (apiErr: any) {
     console.error("Failed to fetch recipes via Google Sheets API:", apiErr);
     return NextResponse.json(
@@ -168,7 +188,7 @@ export async function GET(request: NextRequest) {
         error: apiErr.message || "Failed to fetch recipes from Google Sheet",
         spreadsheetId: COOK_BOOK_SPREADSHEET_ID,
       },
-      { status: 500 }
+      { status: 500, headers }
     );
   }
 }

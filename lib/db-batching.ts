@@ -1588,13 +1588,20 @@ export async function getMixDesigns(activeOnly = true): Promise<MixDesign[]> {
   }
 }
 
-export async function syncRecipesFromCloud(): Promise<MixDesign[]> {
+export async function syncRecipesFromCloud(force = false): Promise<MixDesign[]> {
   if (!isClient) return DEFAULT_MIX_DESIGNS;
   const db = await initDB();
   if (!db) return DEFAULT_MIX_DESIGNS;
 
   try {
-    const res = await fetch("/api/batching/recipes", { cache: "no-store" });
+    const res = await fetch(`/api/batching/recipes?_t=${Date.now()}`, {
+      cache: "no-store",
+      headers: {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+      },
+    });
+
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data.recipes) && data.recipes.length > 0) {

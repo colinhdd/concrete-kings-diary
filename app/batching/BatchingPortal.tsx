@@ -93,6 +93,7 @@ export default function BatchingPortal() {
   const [observationOptions, setObservationOptions] = useState<ObservationOption[]>(DEFAULT_OBSERVATIONS);
   const [adjustmentOptions, setAdjustmentOptions] = useState<AdjustmentOption[]>(DEFAULT_ADJUSTMENTS);
   const [unsyncedCount, setUnsyncedCount] = useState<number>(0);
+  const [lastRecipeSyncTime, setLastRecipeSyncTime] = useState<string | null>(null);
 
   // Sync & Network
   const [isOnline, setIsOnline] = useState<boolean>(true);
@@ -151,10 +152,11 @@ export default function BatchingPortal() {
       setUnsyncedCount(unsynced.length);
 
       // Background sync recipes from Cooking Station Google Sheet
-      syncRecipesFromCloud()
+      syncRecipesFromCloud(true)
         .then((latestMixes) => {
           if (latestMixes && latestMixes.length > 0) {
             setMixDesigns(latestMixes);
+            setLastRecipeSyncTime(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
           }
         })
         .catch(() => {});
@@ -166,17 +168,28 @@ export default function BatchingPortal() {
   const refreshRef = React.useRef(refreshLocalData);
   refreshRef.current = refreshLocalData;
 
-  // Sync to cloud handler
+  // Sync to cloud handler (loads + live recipes)
   const handleTriggerSync = useCallback(async () => {
     if (isSyncingRef.current) return;
     isSyncingRef.current = true;
     setIsSyncing(true);
 
     try {
-      const result = await syncBatchingDataToCloud();
+      const [result, latestMixes] = await Promise.all([
+        syncBatchingDataToCloud(),
+        syncRecipesFromCloud(true),
+      ]);
+
+      if (latestMixes && latestMixes.length > 0) {
+        setMixDesigns(latestMixes);
+        setLastRecipeSyncTime(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+      }
+
       if (result.success) {
         if (result.syncedCount > 0) {
-          setSyncFeedback(`Successfully synced ${result.syncedCount} load${result.syncedCount > 1 ? "s" : ""} to cloud`);
+          setSyncFeedback(`Synced ${result.syncedCount} load${result.syncedCount > 1 ? "s" : ""} & pulled latest recipes from Google Sheet`);
+        } else {
+          setSyncFeedback(`Pulled latest recipes from Cooking Station Google Sheet`);
         }
       } else if (result.error && result.error !== "Offline") {
         setSyncFeedback(`Sync notice: ${result.error}`);
@@ -194,7 +207,7 @@ export default function BatchingPortal() {
   const syncRef = React.useRef(handleTriggerSync);
   syncRef.current = handleTriggerSync;
 
-  // Initial mount & online listeners (runs ONCE on mount)
+  // Initial mount, online listeners, visibility/focus sync (runs ONCE on mount)
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -221,8 +234,24 @@ export default function BatchingPortal() {
     };
     const handleOffline = () => setIsOnline(false);
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible" && navigator.onLine) {
+        refreshRef.current();
+        syncRef.current();
+      }
+    };
+
+    const handleWindowFocus = () => {
+      if (navigator.onLine) {
+        refreshRef.current();
+        syncRef.current();
+      }
+    };
+
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleWindowFocus);
 
     // Initial load once on mount
     refreshRef.current().then(() => {
@@ -231,16 +260,18 @@ export default function BatchingPortal() {
       }
     });
 
-    // Background sync heartbeat every 30s
+    // Background sync heartbeat every 25s
     const syncInterval = setInterval(() => {
       if (navigator.onLine && !isSyncingRef.current) {
         syncRef.current();
       }
-    }, 30000);
+    }, 25000);
 
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleWindowFocus);
       clearInterval(syncInterval);
     };
   }, []);
@@ -520,6 +551,8 @@ export default function BatchingPortal() {
             onTriggerSync={handleTriggerSync}
             onOpenBatchingDayModal={() => setIsDayModalOpen(true)}
             onDayUpdated={handleDayUpdated}
+            lastRecipeSyncTime={lastRecipeSyncTime}
+            recipesCount={mixDesigns.length}
           />
         )}
 

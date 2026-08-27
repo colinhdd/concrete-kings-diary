@@ -38,6 +38,8 @@ interface HomeScreenProps {
   onTriggerSync: () => void;
   onOpenBatchingDayModal: () => void;
   onDayUpdated?: (day: BatchingDay) => void;
+  lastRecipeSyncTime?: string | null;
+  recipesCount?: number;
 }
 
 export default function HomeScreen({
@@ -58,6 +60,8 @@ export default function HomeScreen({
   onTriggerSync,
   onOpenBatchingDayModal,
   onDayUpdated,
+  lastRecipeSyncTime,
+  recipesCount = 25,
 }: HomeScreenProps) {
   const currentDateFormatted = new Date().toLocaleDateString("en-US", {
     weekday: "long",
@@ -213,6 +217,57 @@ export default function HomeScreen({
           }}
         >
           {isClockedIn ? "Shift Details / Clock Out" : "Clock In Daily Shift"}
+        </button>
+      </div>
+
+      {/* Live Google Sheet Connection Status & Quick Refresh */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "8px 14px",
+          background: "rgba(59, 130, 246, 0.08)",
+          border: "1px solid rgba(59, 130, 246, 0.2)",
+          borderRadius: "12px",
+          fontSize: "0.78rem",
+          color: "var(--text-secondary)",
+          flexWrap: "wrap",
+          gap: "8px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div
+            style={{
+              width: "8px",
+              height: "8px",
+              borderRadius: "50%",
+              backgroundColor: "#22c55e",
+              boxShadow: "0 0 8px rgba(34, 197, 94, 0.6)",
+            }}
+          />
+          <span>
+            <strong style={{ color: "var(--text-primary)" }}>Cooking Station Google Sheet</strong>: {recipesCount} live recipes synced {lastRecipeSyncTime ? `(${lastRecipeSyncTime})` : "(active)"}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={onTriggerSync}
+          disabled={isSyncing}
+          style={{
+            background: "none",
+            border: "none",
+            color: "#60a5fa",
+            fontWeight: "700",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "4px",
+            fontSize: "0.75rem",
+            padding: "2px 6px",
+          }}
+        >
+          <Activity size={12} className={isSyncing ? "spin" : ""} /> {isSyncing ? "Syncing Sheet..." : "Pull Latest Sheet"}
         </button>
       </div>
 
