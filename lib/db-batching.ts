@@ -1049,21 +1049,107 @@ export async function getMoistureHistory(): Promise<MoistureReading[]> {
   return all.sort((a, b) => b.timestamp - a.timestamp);
 }
 
-// === BATCHING DAY OPERATIONS ===
+// === BATCHING DAY OPERATIONS & DAILY ROLLOVER ===
+
+export function getLocalDateString(d: Date = new Date()): string {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Automatically processes day-to-day shift rollover:
+ * 1. Checks if any previous shift was left open on a date before today.
+ * 2. If an open shift from a previous date is found:
+ *    - Auto-closes that previous shift (status = "closed", endTime = "11:59 PM", closedAt = now).
+ *    - Auto-logs all unreviewed jobs from that shift and prior days as "Not Reviewed":
+ *      - isReviewed = true
+ *      - observation tag "Not Reviewed"
+ *      - reviewNotes = "Not reviewed during shift (Auto-closed on day rollover)"
+ *      - reviewedBy = "System (Auto-close)"
+ *      - reviewedAt = now
+ *      - syncStatus = "Saved Offline" (queued for cloud sync)
+ * 3. Guarantees that batchers must sign in for the new day.
+ */
+export async function processDailyShiftRollover(): Promise<{
+  autoClosedDaysCount: number;
+  autoLoggedLoadsCount: number;
+}> {
+  if (!isClient) return { autoClosedDaysCount: 0, autoLoggedLoadsCount: 0 };
+  const db = await initDB();
+  if (!db) return { autoClosedDaysCount: 0, autoLoggedLoadsCount: 0 };
+
+  const now = new Date();
+  const todayStr = getLocalDateString(now);
+
+  let autoClosedDaysCount = 0;
+  let autoLoggedLoadsCount = 0;
+
+  try {
+    // 1. Auto-close prior open batching days
+    const allDays = await db.getAll("batching_days");
+    const priorOpenDays = allDays.filter((d) => d.status === "open" && d.date !== todayStr);
+
+    for (const day of priorOpenDays) {
+      day.status = "closed";
+      day.endTime = day.endTime || "11:59 PM";
+      day.closedAt = day.closedAt || now.getTime();
+      await db.put("batching_days", day);
+      autoClosedDaysCount++;
+    }
+
+    // 2. Auto-log all unreviewed loads from previous days as "Not Reviewed"
+    const allLoads = await db.getAll("loads");
+    const priorUnreviewedLoads = allLoads.filter(
+      (l) => l.date !== todayStr && l.isReviewed !== true && !l.isVoid
+    );
+
+    for (const load of priorUnreviewedLoads) {
+      const existingObs = Array.isArray(load.concreteObservations)
+        ? (load.concreteObservations as string[]).filter((o: string) => o !== "Pending Review")
+        : [];
+      if (!existingObs.includes("Not Reviewed")) {
+        existingObs.push("Not Reviewed");
+      }
+
+      load.isReviewed = true;
+      load.concreteObservations = existingObs;
+      load.reviewNotes = load.reviewNotes
+        ? `${load.reviewNotes} • [System: Not reviewed during shift]`
+        : "Not reviewed during shift";
+      load.reviewedBy = load.reviewedBy || "System (Auto-close)";
+      load.reviewedAt = load.reviewedAt || now.getTime();
+      load.updatedAt = now.getTime();
+      load.syncStatus = "Saved Offline"; // Queue for sync to Google Sheets / Supabase
+
+      await db.put("loads", load);
+      autoLoggedLoadsCount++;
+    }
+  } catch (err) {
+    console.error("Error during processDailyShiftRollover:", err);
+  }
+
+  return { autoClosedDaysCount, autoLoggedLoadsCount };
+}
 
 export async function getCurrentBatchingDay(): Promise<BatchingDay | null> {
   if (!isClient) return null;
   const db = await initDB();
   if (!db) return null;
 
-  const todayStr = new Date().toISOString().split("T")[0];
-  const allDays = await db.getAll("batching_days");
-  // Find open day, or today's day
-  const openDay = allDays.find((d) => d.status === "open");
-  if (openDay) return openDay;
+  // Run daily rollover check first: auto-close yesterday's shift & log unreviewed loads
+  await processDailyShiftRollover();
 
-  const todayDay = allDays.find((d) => d.date === todayStr);
-  return todayDay || null;
+  const todayStr = getLocalDateString();
+  const allDays = await db.getAll("batching_days");
+
+  // Strictly return an open shift created for TODAY
+  const openToday = allDays.find((d) => d.status === "open" && d.date === todayStr);
+  if (openToday) return openToday;
+
+  // If no open shift exists for today, return null to force the batcher to clock in
+  return null;
 }
 
 export async function startBatchingDay(
@@ -1077,8 +1163,20 @@ export async function startBatchingDay(
   const db = await initDB();
   if (!db) throw new Error("DB not ready");
 
+  // Ensure all prior shifts are cleanly closed
+  await processDailyShiftRollover();
+
   const now = new Date();
-  const todayStr = now.toISOString().split("T")[0];
+  const todayStr = getLocalDateString(now);
+
+  // If an open shift for today already exists, close it before starting a fresh one
+  const allDays = await db.getAll("batching_days");
+  for (const existing of allDays.filter((d) => d.status === "open")) {
+    existing.status = "closed";
+    existing.endTime = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    existing.closedAt = now.getTime();
+    await db.put("batching_days", existing);
+  }
 
   const newDay: BatchingDay = {
     id: `day_${todayStr}_${generateUUID().slice(0, 8)}`,

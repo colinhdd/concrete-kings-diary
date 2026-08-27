@@ -46,6 +46,7 @@ import NewLoadForm from "@/components/batching/NewLoadForm";
 import ObservationReview from "@/components/batching/ObservationReview";
 import TodaysLoads from "@/components/batching/TodaysLoads";
 import MixConversionCalculator from "@/components/batching/MixConversionCalculator";
+import ClockInGate from "@/components/batching/ClockInGate";
 import MoistureModal from "@/components/batching/MoistureModal";
 import BatchingDayModal from "@/components/batching/BatchingDayModal";
 import LoadDetailModal from "@/components/batching/LoadDetailModal";
@@ -345,6 +346,8 @@ export default function BatchingPortal() {
     setIsMoistureModalOpen(true);
   };
 
+  const isShiftActive = Boolean(batchingDay && batchingDay.status === "open");
+
   return (
     <div className="app-container">
       {/* Top App Header with Connection Badge and Day Status */}
@@ -507,34 +510,24 @@ export default function BatchingPortal() {
         )}
 
         {activeTab === "new-load" && (
-          <NewLoadForm
-            batchingDay={
-              batchingDay || {
-                id: "default_day",
-                date: new Date().toISOString().split("T")[0],
-                batcherId: "batcher_01",
-                batcherName: "Lead Batcher",
-                plantId: "plant_01",
-                plantName: "Concrete Kings Main Plant",
-                startTime: "07:00 AM",
-                status: "open",
-                totalLoads: 0,
-                totalVolume: 0,
-                createdAt: Date.now(),
-              }
-            }
-            currentSandMoisture={currentSandMoisture}
-            currentStoneMoisture={currentStoneMoisture}
-            mixDesigns={mixDesigns.filter((m) => m.active)}
-            trucks={trucks.filter((t) => t.active)}
-            observationOptions={observationOptions}
-            adjustmentOptions={adjustmentOptions}
-            onOpenMoistureModal={handleOpenMoistureModal}
-            onLoadSaved={handleLoadSaved}
-            onCancel={() => setActiveTab("home")}
-            initialValues={repeatLoadData}
-            todaysLoads={todaysLoads}
-          />
+          !isShiftActive ? (
+            <ClockInGate onClockedIn={handleDayUpdated} />
+          ) : (
+            <NewLoadForm
+              batchingDay={batchingDay!}
+              currentSandMoisture={currentSandMoisture}
+              currentStoneMoisture={currentStoneMoisture}
+              mixDesigns={mixDesigns.filter((m) => m.active)}
+              trucks={trucks.filter((t) => t.active)}
+              observationOptions={observationOptions}
+              adjustmentOptions={adjustmentOptions}
+              onOpenMoistureModal={handleOpenMoistureModal}
+              onLoadSaved={handleLoadSaved}
+              onCancel={() => setActiveTab("home")}
+              initialValues={repeatLoadData}
+              todaysLoads={todaysLoads}
+            />
+          )
         )}
 
         {activeTab === "convert" && (
@@ -549,15 +542,19 @@ export default function BatchingPortal() {
         )}
 
         {activeTab === "review" && (
-          <ObservationReview
-            todaysLoads={todaysLoads}
-            observationOptions={observationOptions}
-            adjustmentOptions={adjustmentOptions}
-            onLoadUpdated={handleLoadUpdated}
-            batcherName={batchingDay?.batcherName || "Lead Batcher"}
-            batcherId={batchingDay?.batcherId || "batcher_01"}
-            onNavigateToDashboard={() => setActiveTab("home")}
-          />
+          !isShiftActive ? (
+            <ClockInGate onClockedIn={handleDayUpdated} />
+          ) : (
+            <ObservationReview
+              todaysLoads={todaysLoads}
+              observationOptions={observationOptions}
+              adjustmentOptions={adjustmentOptions}
+              onLoadUpdated={handleLoadUpdated}
+              batcherName={batchingDay?.batcherName || "Lead Batcher"}
+              batcherId={batchingDay?.batcherId || "batcher_01"}
+              onNavigateToDashboard={() => setActiveTab("home")}
+            />
+          )
         )}
 
         {activeTab === "todays-loads" && (
