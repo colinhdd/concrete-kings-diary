@@ -292,20 +292,16 @@ export function calculateBatchFormulation(
   const settingM = totalSetMins % 60;
   const settingTimeFormatted = `${settingH}h ${settingM.toString().padStart(2, "0")}m`;
 
-  // 8. Volumetric Yield & Paste Fraction (ACI 211.1 / ASTM C138 Absolute Volume Method)
-  // Absolute volume of each ingredient (m³): Solid Mass (kg) / (Specific Gravity * 1000 kg/m³)
+  // 8. Volumetric Yield & Paste Fraction using exact plant formula
   const cementVolM3 = cementTotal / (sg.cementSG * 1000);
-  const waterVolM3 = finalWater / (sg.waterSG * 1000); // 1 L water = 1 kg at SG 1.0
+  const waterVolM3 = finalWater / 1000;
   const sandDryVolM3 = baseSandDry / (sg.sandSG * 1000);
   const s34VolM3 = baseS34Dry / (sg.s34SG * 1000);
   const s38VolM3 = baseS38Dry / (sg.s38SG * 1000);
+  const plVolM3 = (plTotal * 29.5735296) / 1000000;
+  const retVolM3 = (retTotal * 29.5735296) / 1000000;
 
-  // Admixtures absolute volume (1 fl oz = 0.0295735 L)
-  const plVolM3 = (plTotal * 0.0295735296) / 1000;
-  const retVolM3 = (retTotal * 0.0295735296) / 1000;
-
-  // Solid + Liquid Volume
-  const solidAndLiquidVolM3 =
+  const totalVolM3 =
     cementVolM3 +
     waterVolM3 +
     sandDryVolM3 +
@@ -314,17 +310,12 @@ export function calculateBatchFormulation(
     plVolM3 +
     retVolM3;
 
-  // Entrapped / Entrained Air volume
-  // Total Volume V_total = V_solids_liquids / (1 - airFraction)
-  const airPct = master.airTargetPct !== undefined ? master.airTargetPct : (sg.airTargetPct ?? 1.0);
-  const airFraction = Math.max(0, Math.min(0.20, airPct / 100));
-  const totalVolM3 = airFraction < 1 ? solidAndLiquidVolM3 / (1 - airFraction) : solidAndLiquidVolM3;
-  const airVolM3 = totalVolM3 - solidAndLiquidVolM3;
+  // Exact Volumetric Batch Yield in CYD per plant formula
+  const yieldCYD = Math.round(totalVolM3 * 1.30795 * 100) / 100;
+  const yieldDiffRatio = volume > 0 ? (yieldCYD - volume) / volume : 0;
 
-  // Paste Volume: Cement + Water + Air + Admixtures
-  const pasteVolM3 = cementVolM3 + waterVolM3 + airVolM3 + plVolM3 + retVolM3;
-
-  // Paste volume fraction (%)
+  // Paste Volume: Cement + Water + Admixtures
+  const pasteVolM3 = cementVolM3 + waterVolM3 + plVolM3 + retVolM3;
   const pastePct = totalVolM3 > 0 ? Math.round((pasteVolM3 / totalVolM3) * 1000) / 10 : 28.0;
   let pasteStatus: "Lean" | "Normal" | "Rich" = "Normal";
   if (pastePct < 26.0) {
@@ -332,10 +323,6 @@ export function calculateBatchFormulation(
   } else if (pastePct > 34.0) {
     pasteStatus = "Rich";
   }
-
-  // Exact Volumetric Batch Yield in CYD (1 m³ = 1.30795062 CYD)
-  const yieldCYD = Math.round(totalVolM3 * 1.30795062 * 100) / 100;
-  const yieldDiffRatio = volume > 0 ? (yieldCYD - volume) / volume : 0;
 
   let yieldStatus: "On Target" | "Under-yielding" | "Over-yielding" = "On Target";
   if (yieldDiffRatio < -0.02) {
@@ -594,20 +581,23 @@ export function calculateMixConversion(input: MixConversionInput): MixConversion
 
   // 8. Resulting Physics, Yield & Quality Analysis
   const cementVolM3 = resultingCementTotal / (sg.cementSG * 1000);
-  const waterVolM3 = resultingWaterTotal / (sg.waterSG * 1000);
+  const waterVolM3 = resultingWaterTotal / 1000;
   const sandDryVolM3 = resultingSandDryTotal / (sg.sandSG * 1000);
   const s34VolM3 = resultingS34DryTotal / (sg.s34SG * 1000);
   const s38VolM3 = resultingS38DryTotal / (sg.s38SG * 1000);
-  const plVolM3 = (resultingPlTotal * 0.0295735296) / 1000;
-  const retVolM3 = (resultingRetTotal * 0.0295735296) / 1000;
+  const plVolM3 = (resultingPlTotal * 29.5735296) / 1000000;
+  const retVolM3 = (resultingRetTotal * 29.5735296) / 1000000;
 
-  const solidAndLiquidVolM3 =
-    cementVolM3 + waterVolM3 + sandDryVolM3 + s34VolM3 + s38VolM3 + plVolM3 + retVolM3;
+  const totalVolM3 =
+    cementVolM3 +
+    waterVolM3 +
+    sandDryVolM3 +
+    s34VolM3 +
+    s38VolM3 +
+    plVolM3 +
+    retVolM3;
 
-  const airPct = targetMix.airTargetPct !== undefined ? targetMix.airTargetPct : (sg.airTargetPct ?? 1.0);
-  const airFraction = Math.max(0, Math.min(0.20, airPct / 100));
-  const totalVolM3 = airFraction < 1 ? solidAndLiquidVolM3 / (1 - airFraction) : solidAndLiquidVolM3;
-  const yieldCYD = Math.round(totalVolM3 * 1.30795062 * 100) / 100;
+  const yieldCYD = Math.round(totalVolM3 * 1.30795 * 100) / 100;
   const yieldDiffRatio = targetVolume > 0 ? (yieldCYD - targetVolume) / targetVolume : 0;
 
   let yieldStatus: "On Target" | "Under-yielding" | "Over-yielding" = "On Target";
