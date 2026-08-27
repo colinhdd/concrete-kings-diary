@@ -37,6 +37,7 @@ import {
   DEFAULT_TRUCKS,
   DEFAULT_OBSERVATIONS,
   DEFAULT_ADJUSTMENTS,
+  getLocalDateString,
   BatchingDay,
   MoistureReading,
   MixDesign,
@@ -55,18 +56,52 @@ import ClockInGate from "@/components/batching/ClockInGate";
 import MoistureModal from "@/components/batching/MoistureModal";
 import BatchingDayModal from "@/components/batching/BatchingDayModal";
 import LoadDetailModal from "@/components/batching/LoadDetailModal";
+import AdminSettings from "@/components/batching/AdminSettings";
+
+type TabType = "home" | "new-load" | "todays-loads" | "convert" | "review" | "settings";
 
 export default function BatchingPortal() {
-  // Navigation
-  const [activeTab, setActiveTab] = useState<"home" | "new-load" | "todays-loads" | "review" | "convert">("home");
+  const [activeTab, setActiveTab] = useState<TabType>("home");
   const [conversionSourceLoad, setConversionSourceLoad] = useState<LoadRecord | null>(null);
 
-  // State
-  const [batchingDay, setBatchingDay] = useState<BatchingDay | null>(null);
+  // Core Data State (with instant localStorage session restore for current day)
+  const [batchingDay, setBatchingDay] = useState<BatchingDay | null>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("ck_active_batching_day");
+        if (saved) {
+          const parsed: BatchingDay = JSON.parse(saved);
+          const todayStr = getLocalDateString();
+          if (parsed && parsed.status === "open" && parsed.date === todayStr) {
+            return parsed;
+          }
+        }
+      } catch (e) {
+        console.warn("Failed to parse cached batching day:", e);
+      }
+    }
+    return null;
+  });
+  const [isInitialLoading, setIsInitialLoading] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("ck_active_batching_day");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          const todayStr = getLocalDateString();
+          if (parsed && parsed.status === "open" && parsed.date === todayStr) {
+            return false; // Already restored valid active shift
+          }
+        }
+      } catch (e) {}
+    }
+    return true;
+  });
+
   const [currentSandMoisture, setCurrentSandMoisture] = useState<MoistureReading>({
     id: "init_sand",
     percentage: 3.0,
-    date: new Date().toISOString().split("T")[0],
+    date: getLocalDateString(),
     time: "07:00 AM",
     timestamp: Date.now(),
     batcherId: "batcher_01",
@@ -77,7 +112,7 @@ export default function BatchingPortal() {
   const [currentStoneMoisture, setCurrentStoneMoisture] = useState<MoistureReading>({
     id: "init_stone",
     percentage: 1.0,
-    date: new Date().toISOString().split("T")[0],
+    date: getLocalDateString(),
     time: "07:00 AM",
     timestamp: Date.now(),
     batcherId: "batcher_01",
@@ -140,7 +175,17 @@ export default function BatchingPortal() {
         getUnsyncedLoads(),
       ]);
 
-      if (day) setBatchingDay(day);
+      setBatchingDay(day);
+      if (day && day.status === "open") {
+        try {
+          localStorage.setItem("ck_active_batching_day", JSON.stringify(day));
+        } catch (e) {}
+      } else {
+        try {
+          localStorage.removeItem("ck_active_batching_day");
+        } catch (e) {}
+      }
+
       if (sandMoist) setCurrentSandMoisture(sandMoist);
       if (stoneMoist) setCurrentStoneMoisture(stoneMoist);
       setTodaysLoads(tLoads);
@@ -162,6 +207,8 @@ export default function BatchingPortal() {
         .catch(() => {});
     } catch (err) {
       console.error("Failed to load local batching data:", err);
+    } finally {
+      setIsInitialLoading(false);
     }
   }, []);
 
@@ -359,6 +406,15 @@ export default function BatchingPortal() {
 
   const handleDayUpdated = (day: BatchingDay) => {
     setBatchingDay(day);
+    if (day && day.status === "open") {
+      try {
+        localStorage.setItem("ck_active_batching_day", JSON.stringify(day));
+      } catch (e) {}
+    } else {
+      try {
+        localStorage.removeItem("ck_active_batching_day");
+      } catch (e) {}
+    }
     refreshLocalData();
     // Prompt sand moisture verification for the first start of a new day
     if (day.status === "open") {
@@ -553,6 +609,7 @@ export default function BatchingPortal() {
             onDayUpdated={handleDayUpdated}
             lastRecipeSyncTime={lastRecipeSyncTime}
             recipesCount={mixDesigns.length}
+            isInitialLoading={isInitialLoading}
           />
         )}
 

@@ -17,7 +17,14 @@ interface ClockInGateProps {
 }
 
 export default function ClockInGate({ onClockedIn }: ClockInGateProps) {
-  const [name, setName] = useState<string>("");
+  const [name, setName] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        return localStorage.getItem("ck_last_batcher_name") || "";
+      } catch (e) {}
+    }
+    return "";
+  });
   const [locationStatus, setLocationStatus] = useState<"checking" | "captured" | "permission_needed" | "fallback">("checking");
   const [locationCoords, setLocationCoords] = useState<{ lat: number; lng: number; accuracy: number } | null>(null);
   const [locationMsg, setLocationMsg] = useState<string>("Acquiring GPS location...");

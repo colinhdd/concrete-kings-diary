@@ -40,6 +40,7 @@ interface HomeScreenProps {
   onDayUpdated?: (day: BatchingDay) => void;
   lastRecipeSyncTime?: string | null;
   recipesCount?: number;
+  isInitialLoading?: boolean;
 }
 
 export default function HomeScreen({
@@ -62,6 +63,7 @@ export default function HomeScreen({
   onDayUpdated,
   lastRecipeSyncTime,
   recipesCount = 25,
+  isInitialLoading = false,
 }: HomeScreenProps) {
   const currentDateFormatted = new Date().toLocaleDateString("en-US", {
     weekday: "long",
@@ -70,7 +72,7 @@ export default function HomeScreen({
     day: "numeric",
   });
 
-  const isClockedIn = batchingDay && batchingDay.status === "open";
+  const isClockedIn = Boolean(batchingDay && batchingDay.status === "open");
 
   const loadsList = useMemo(() => {
     if (todaysLoads && todaysLoads.length > 0) {
@@ -147,6 +149,16 @@ export default function HomeScreen({
   const issuesCount = useMemo(() => {
     return conditionSummary.filter((c) => c.isWarning).reduce((sum, c) => sum + c.count, 0);
   }, [conditionSummary]);
+
+  // Loading state while initializing local database
+  if (isInitialLoading) {
+    return (
+      <div style={{ padding: "3rem 1rem", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
+        <Activity size={24} className="spin" color="#e05300" />
+        <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)", fontWeight: "700" }}>Checking active shift status...</span>
+      </div>
+    );
+  }
 
   // If not clocked in, show Clock-In Gatekeeper as the first screen before work starts
   if (!isClockedIn) {

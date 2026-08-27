@@ -1130,6 +1130,12 @@ export async function processDailyShiftRollover(): Promise<{
       autoClosedDaysCount++;
     }
 
+    if (autoClosedDaysCount > 0 && typeof window !== "undefined") {
+      try {
+        localStorage.removeItem("ck_active_batching_day");
+      } catch (e) {}
+    }
+
     // 2. Auto-log all unreviewed loads from previous days as "Not Reviewed"
     const allLoads = await db.getAll("loads");
     const priorUnreviewedLoads = allLoads.filter(
@@ -1177,9 +1183,21 @@ export async function getCurrentBatchingDay(): Promise<BatchingDay | null> {
 
   // Strictly return an open shift created for TODAY
   const openToday = allDays.find((d) => d.status === "open" && d.date === todayStr);
-  if (openToday) return openToday;
+  if (openToday) {
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("ck_active_batching_day", JSON.stringify(openToday));
+      } catch (e) {}
+    }
+    return openToday;
+  }
 
-  // If no open shift exists for today, return null to force the batcher to clock in
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.removeItem("ck_active_batching_day");
+    } catch (e) {}
+  }
+
   return null;
 }
 
@@ -1228,6 +1246,14 @@ export async function startBatchingDay(
   };
 
   await db.put("batching_days", newDay);
+
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem("ck_active_batching_day", JSON.stringify(newDay));
+      localStorage.setItem("ck_last_batcher_name", batcherName);
+    } catch (e) {}
+  }
+
   return newDay;
 }
 
@@ -1245,6 +1271,13 @@ export async function closeBatchingDay(dayId: string): Promise<BatchingDay | nul
   day.closedAt = now.getTime();
 
   await db.put("batching_days", day);
+
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.removeItem("ck_active_batching_day");
+    } catch (e) {}
+  }
+
   return day;
 }
 
@@ -1331,7 +1364,7 @@ export async function saveLoad(loadInput: {
   const day = await dayStore.get(loadInput.batchingDayId);
 
   const currentCount = day ? (day.totalLoads || 0) + 1 : 1;
-  const todayStr = now.toISOString().split("T")[0];
+  const todayStr = getLocalDateString(now);
   const finalBatchNumber =
     loadInput.batchNumber ||
     generateBatchNumber(todayStr, loadInput.jobCode || "");
@@ -1429,7 +1462,7 @@ export async function getTodaysLoads(batchingDayId?: string): Promise<LoadRecord
   const db = await initDB();
   if (!db) return [];
 
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = getLocalDateString();
   const allLoads = await db.getAll("loads");
 
   return allLoads
