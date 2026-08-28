@@ -123,6 +123,7 @@ export interface AuditRecord {
 export interface LoadRecord {
   id: string; // UUID generated locally
   batchNumber?: string; // YEAR-MM-DD-JJ-LL (e.g. 2026-08-21-01-01)
+  ticketNumber?: string; // 6-digit delivery ticket # (e.g. "123456")
   jobCode?: string; // e.g. "01"
   batchingDayId: string;
   date: string; // YYYY-MM-DD

@@ -173,6 +173,21 @@ export default function TodaysLoads({
                         #{load.batchNumber}
                       </span>
                     )}
+                    {load.ticketNumber && (
+                      <span
+                        style={{
+                          fontSize: "0.7rem",
+                          padding: "1px 5px",
+                          borderRadius: "4px",
+                          backgroundColor: "rgba(16, 185, 129, 0.15)",
+                          color: "#10b981",
+                          fontWeight: "800",
+                          fontFamily: "Outfit, monospace",
+                        }}
+                      >
+                        🎟️ #{load.ticketNumber}
+                      </span>
+                    )}
                     <span
                       style={{
                         fontSize: "0.78rem",

@@ -19,6 +19,7 @@ import {
   ChevronRight,
   Wrench,
   Sparkles,
+  Ticket,
 } from "lucide-react";
 import {
   LoadRecord,
@@ -133,6 +134,8 @@ export default function ObservationReview({
   const derivedSlumpMonicker = useMemo(() => getSlumpMonicker(assumedSlump), [assumedSlump]);
 
   // Observation Form State
+  const [ticketNumber, setTicketNumber] = useState<string>("");
+  const [ticketError, setTicketError] = useState<string | null>(null);
   const [selectedObs, setSelectedObs] = useState<string[]>([]);
   const [selectedActions, setSelectedActions] = useState<string[]>([]);
   const [actionDetails, setActionDetails] = useState<string>("");
@@ -144,6 +147,9 @@ export default function ObservationReview({
   // Sync form state when selected load changes
   useEffect(() => {
     if (selectedLoad) {
+      setTicketNumber(selectedLoad.ticketNumber || "");
+      setTicketError(null);
+
       if (selectedLoad.observedSlumpInches !== undefined) {
         setAssumedSlump(selectedLoad.observedSlumpInches);
       } else {
@@ -227,6 +233,15 @@ export default function ObservationReview({
 
   const handleSaveObservation = async (overrideSlump?: number, overrideObs?: string[], overrideActions?: string[]) => {
     if (!selectedLoad) return;
+
+    // Validate mandatory 6-digit ticket number
+    const cleanTicket = ticketNumber.replace(/\D/g, "").slice(0, 6);
+    if (cleanTicket.length !== 6) {
+      setTicketError("A 6-digit delivery ticket number is required to review this load (e.g. 102458).");
+      alert("Please enter a valid 6-digit delivery ticket number before saving this review.");
+      return;
+    }
+
     setIsSaving(true);
     try {
       const finalSlump = overrideSlump !== undefined ? overrideSlump : assumedSlump;
@@ -244,6 +259,7 @@ export default function ObservationReview({
       const updated = await updateLoad(
         selectedLoad.id,
         {
+          ticketNumber: cleanTicket,
           observedSlumpInches: finalSlump,
           concreteObservations: finalObservations,
           actionsTaken: rawActions,
@@ -255,7 +271,7 @@ export default function ObservationReview({
         },
         batcherName,
         batcherId,
-        `Recorded slump ${finalSlump}" (${monickerInfo.monicker}) & action: ${finalActionSummary || "None"}`
+        `Reviewed Ticket #${cleanTicket} • Recorded slump ${finalSlump}" (${monickerInfo.monicker}) & action: ${finalActionSummary || "None"}`
       );
 
       if (updated) {
@@ -447,6 +463,70 @@ export default function ObservationReview({
           >
             Did Not Review
           </button>
+
+          {/* ================= MANDATORY 6-DIGIT DELIVERY TICKET NUMBER ================= */}
+          <div
+            style={{
+              padding: "16px",
+              borderRadius: "14px",
+              backgroundColor: "var(--bg-secondary)",
+              border: ticketError ? "2px solid #ef4444" : "1.5px solid var(--glass-border)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <label style={{ fontSize: "0.92rem", fontWeight: "800", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "6px" }}>
+                <Ticket size={18} color="#e05300" /> Delivery Ticket # <span style={{ color: "#ef4444", fontSize: "0.82rem" }}>* (6 Digits Required)</span>
+              </label>
+              <span style={{ fontSize: "0.8rem", fontWeight: "800", color: ticketNumber.length === 6 ? "#10b981" : "#f59e0b" }}>
+                {ticketNumber.length === 6 ? "✓ Complete" : `${ticketNumber.length}/6 Digits`}
+              </span>
+            </div>
+
+            <div style={{ position: "relative" }}>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={6}
+                className="form-input"
+                value={ticketNumber}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, "").slice(0, 6);
+                  setTicketNumber(val);
+                  if (val.length === 6) {
+                    setTicketError(null);
+                  }
+                }}
+                placeholder="e.g. 102458"
+                style={{
+                  fontSize: "1.4rem",
+                  fontWeight: "900",
+                  letterSpacing: "4px",
+                  textAlign: "center",
+                  padding: "12px",
+                  fontFamily: "Outfit, monospace",
+                  border: ticketError ? "1.5px solid #ef4444" : "1.5px solid #e05300",
+                  borderRadius: "10px",
+                  backgroundColor: "var(--bg-tertiary)",
+                  color: "var(--text-primary)",
+                  width: "100%",
+                }}
+              />
+            </div>
+
+            {ticketError ? (
+              <div style={{ fontSize: "0.8rem", fontWeight: "700", color: "#ef4444", display: "flex", alignItems: "center", gap: "5px" }}>
+                <AlertTriangle size={14} /> {ticketError}
+              </div>
+            ) : (
+              <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                Input the 6-digit physical delivery ticket number printed for this batch.
+              </div>
+            )}
+          </div>
 
           {/* ================= 1. ASSUMED SLUMP & DERIVED CONSISTENCY (SOFT / STIFF) ================= */}
           <div
@@ -976,6 +1056,11 @@ export default function ObservationReview({
                         {load.batchNumber && (
                           <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontFamily: "Outfit, monospace" }}>
                             #{load.batchNumber}
+                          </span>
+                        )}
+                        {load.ticketNumber && (
+                          <span style={{ fontSize: "0.75rem", color: "#10b981", fontWeight: "800", padding: "1px 6px", borderRadius: "4px", backgroundColor: "rgba(16, 185, 129, 0.12)", fontFamily: "Outfit, monospace" }}>
+                            🎟️ #{load.ticketNumber}
                           </span>
                         )}
                         <span style={{ fontSize: "0.75rem", color: "#3b82f6", fontWeight: "700" }}>

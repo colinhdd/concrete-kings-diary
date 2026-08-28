@@ -135,6 +135,21 @@ export default function LoadDetailModal({
                     #{load.batchNumber}
                   </span>
                 )}
+                {load.ticketNumber && (
+                  <span
+                    style={{
+                      fontSize: "0.75rem",
+                      padding: "2px 6px",
+                      borderRadius: "4px",
+                      backgroundColor: "rgba(16, 185, 129, 0.15)",
+                      color: "#10b981",
+                      fontWeight: "800",
+                      fontFamily: "Outfit, monospace",
+                    }}
+                  >
+                    🎟️ Ticket #{load.ticketNumber}
+                  </span>
+                )}
                 {load.isVoid ? (
                   <span className="badge failed">VOIDED</span>
                 ) : (
