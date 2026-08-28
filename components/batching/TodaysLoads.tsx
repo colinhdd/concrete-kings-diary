@@ -123,9 +123,11 @@ export default function TodaysLoads({
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
           {filteredLoads.map((load) => {
-            const obsText = Array.isArray(load.concreteObservations)
-              ? load.concreteObservations.join(", ")
-              : String(load.concreteObservations || "");
+            const obsFiltered = Array.isArray(load.concreteObservations)
+              ? load.concreteObservations.filter((o) => o !== "Perfect" && o !== "Normal" && o !== "Pending Review")
+              : [];
+            const obsText = obsFiltered.join(", ");
+            const hasBottomContent = load.isVoid || Boolean(obsText) || Boolean(load.actionTaken);
 
             return (
               <div
@@ -228,39 +230,19 @@ export default function TodaysLoads({
                   </span>
                 </div>
 
-                {/* Bottom Row: Observations & Quick Actions */}
-                <div style={{ paddingTop: "6px", borderTop: "1px solid var(--glass-border)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-                  <div style={{ fontSize: "0.78rem", color: "var(--text-secondary)", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap", flex: 1 }}>
-                    {load.isVoid ? `[VOIDED: ${load.voidReason}]` : obsText || "Condition: Normal"}
-                  </div>
-
-                  {!load.isVoid && (
-                    <div style={{ display: "flex", gap: "6px" }}>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onConvertLoad?.(load);
-                        }}
-                        style={{
-                          fontSize: "0.72rem",
-                          fontWeight: "700",
-                          padding: "3px 8px",
-                          borderRadius: "6px",
-                          background: "rgba(59, 130, 246, 0.15)",
-                          border: "1px solid rgba(59, 130, 246, 0.3)",
-                          color: "#60a5fa",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "4px",
-                        }}
-                      >
-                        <ArrowLeftRight size={11} /> Convert Mix
-                      </button>
+                {/* Bottom Row: Observations / Action only if present */}
+                {hasBottomContent && (
+                  <div style={{ paddingTop: "6px", borderTop: "1px solid var(--glass-border)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                    <div style={{ fontSize: "0.78rem", color: load.isVoid ? "#ef4444" : "var(--text-secondary)", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap", flex: 1 }}>
+                      {load.isVoid ? `[VOIDED: ${load.voidReason}]` : obsText}
                     </div>
-                  )}
-                </div>
+                    {load.actionTaken && (
+                      <span style={{ fontSize: "0.7rem", fontWeight: "700", color: "#10b981" }}>
+                        {load.actionTaken}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
