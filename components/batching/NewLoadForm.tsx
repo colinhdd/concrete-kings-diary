@@ -39,6 +39,8 @@ import {
   extractLoadAdjustments,
   DEFAULT_MIX_DESIGNS,
   getLocalDateString,
+  getCurrentBatchingDay,
+  startBatchingDay,
 } from "@/lib/db-batching";
 import { calculateBatchFormulation, mlToFlOz, flOzToMl, ML_PER_FL_OZ } from "@/lib/batching-engine";
 
@@ -173,6 +175,12 @@ export default function NewLoadForm({
   }, [initialValues, defaultJobCode, todaysLoads, effectiveMixes]);
 
   const [selectedMixId, setSelectedMixId] = useState<string>(() => defaultMixId);
+
+  useEffect(() => {
+    if (!selectedTruckId && trucks.length > 0) {
+      setSelectedTruckId(trucks[0].id);
+    }
+  }, [trucks, selectedTruckId]);
 
   useEffect(() => {
     if (!selectedMixId && effectiveMixes.length > 0) {
@@ -628,15 +636,25 @@ export default function NewLoadForm({
       }
 
       let saved: LoadRecord | null = null;
+      const targetDay = batchingDay || (await getCurrentBatchingDay()) || (await startBatchingDay());
+      const activeTruckObj = activeTruck || (trucks.length > 0 ? trucks[0] : {
+        id: "truck_default",
+        code: "TRUCK-01",
+        driver: "",
+        capacityYards: 10,
+        active: true,
+      });
+      const activeMixObj = activeMix || effectiveMixes[0];
+
       if (initialValues?.id) {
         saved = await updateLoad(
           initialValues.id,
           {
-            truckId: activeTruck.id,
-            truckCode: activeTruck.code,
-            mixDesignId: activeMix.id,
-            mixCode: activeMix.code,
-            mixDesignVersion: activeMix.version || 1,
+            truckId: activeTruckObj.id,
+            truckCode: activeTruckObj.code,
+            mixDesignId: activeMixObj.id,
+            mixCode: activeMixObj.code,
+            mixDesignVersion: activeMixObj.version || 1,
             quantity: quantity,
             sandMoisturePercent: sandMoisturePct,
             stoneMoisturePercent: stoneMoisturePct,
@@ -662,22 +680,22 @@ export default function NewLoadForm({
             batchNumber: initialValues.batchNumber || currentBatchNumber,
             jobCode: jobCode,
           },
-          batchingDay.batcherName,
-          batchingDay.batcherId,
+          targetDay?.batcherName || "Lead Batcher",
+          targetDay?.batcherId || "batcher_01",
           "Edited / re-batched in batching form"
         );
       }
 
       if (!saved) {
         saved = await saveLoad({
-          batchingDayId: batchingDay.id,
-          batcherId: batchingDay.batcherId,
-          batcherName: batchingDay.batcherName,
-          plantId: batchingDay.plantId,
-          plantName: batchingDay.plantName,
-          truckId: activeTruck.id,
-          truckCode: activeTruck.code,
-          mixDesign: activeMix,
+          batchingDayId: targetDay.id,
+          batcherId: targetDay.batcherId || "batcher_01",
+          batcherName: targetDay.batcherName || "Lead Batcher",
+          plantId: targetDay.plantId || "plant_yard_1",
+          plantName: targetDay.plantName || "Concrete Kings Plant Yard",
+          truckId: activeTruckObj.id,
+          truckCode: activeTruckObj.code,
+          mixDesign: activeMixObj,
           quantity: quantity,
           sandMoisturePercent: sandMoisturePct,
           stoneMoisturePercent: stoneMoisturePct,
