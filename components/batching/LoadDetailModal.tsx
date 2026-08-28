@@ -25,7 +25,7 @@ import {
   updateLoad,
   voidLoad,
 } from "@/lib/db-batching";
-import { flOzToMl } from "@/lib/batching-engine";
+import { flOzToMl, mlToFlOz } from "@/lib/batching-engine";
 
 interface LoadDetailModalProps {
   load: LoadRecord | null;
@@ -427,16 +427,16 @@ export default function LoadDetailModal({
                       <strong style={{ fontSize: "0.95rem", color: "#8b5cf6" }}>
                         {(load.actualPlasticizer !== undefined && load.actualPlasticizer > 0
                           ? load.actualPlasticizer
-                          : Math.round((snapshot.plasticizerDesign || 0) * load.quantity)
+                          : Math.round(mlToFlOz((snapshot.plasticizerDesign || 0) * load.quantity))
                         ).toLocaleString()} fl oz
                       </strong>
                       <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginLeft: "4px" }}>
-                        ({Math.round(flOzToMl(load.actualPlasticizer !== undefined && load.actualPlasticizer > 0
-                          ? load.actualPlasticizer
-                          : (snapshot.plasticizerDesign || 0) * load.quantity)).toLocaleString()} mL)
+                        ({Math.round(load.actualPlasticizer !== undefined && load.actualPlasticizer > 0
+                          ? flOzToMl(load.actualPlasticizer)
+                          : (snapshot.plasticizerDesign || 0) * load.quantity).toLocaleString()} mL)
                       </span>
                       <div style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>
-                        {snapshot.plasticizerDesign ? `Rate: ${snapshot.plasticizerDesign} fl oz/yd³` : ""}
+                        {snapshot.plasticizerDesign ? `Rate: ${snapshot.plasticizerDesign} mL/yd³ (${(Math.round(mlToFlOz(snapshot.plasticizerDesign) * 10) / 10).toFixed(1)} oz/y)` : ""}
                       </div>
                     </div>
 
@@ -445,16 +445,16 @@ export default function LoadDetailModal({
                       <strong style={{ fontSize: "0.95rem", color: "#f59e0b" }}>
                         {(load.actualRetarder !== undefined && load.actualRetarder > 0
                           ? load.actualRetarder
-                          : Math.round((snapshot.retarderDesign || 0) * load.quantity)
+                          : Math.round(mlToFlOz((snapshot.retarderDesign || 0) * load.quantity))
                         ).toLocaleString()} fl oz
                       </strong>
                       <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginLeft: "4px" }}>
-                        ({Math.round(flOzToMl(load.actualRetarder !== undefined && load.actualRetarder > 0
-                          ? load.actualRetarder
-                          : (snapshot.retarderDesign || 0) * load.quantity)).toLocaleString()} mL)
+                        ({Math.round(load.actualRetarder !== undefined && load.actualRetarder > 0
+                          ? flOzToMl(load.actualRetarder)
+                          : (snapshot.retarderDesign || 0) * load.quantity).toLocaleString()} mL)
                       </span>
                       <div style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>
-                        {snapshot.retarderDesign ? `Rate: ${snapshot.retarderDesign} fl oz/yd³` : "0 fl oz/yd³"}
+                        {snapshot.retarderDesign ? `Rate: ${snapshot.retarderDesign} mL/yd³ (${(Math.round(mlToFlOz(snapshot.retarderDesign) * 10) / 10).toFixed(1)} oz/y)` : "0 mL/yd³"}
                       </div>
                     </div>
                   </div>
