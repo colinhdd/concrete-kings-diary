@@ -249,6 +249,29 @@ export default function BatchingPortal() {
   const syncRef = React.useRef(handleTriggerSync);
   syncRef.current = handleTriggerSync;
 
+  // 1-Click Hard Reset Handler (Clears SW, Cache Storage, and forces fresh reload)
+  const handleHardReset = useCallback(async () => {
+    if (
+      window.confirm(
+        "Hard reset site cache & update? This will purge cached offline files and reload the latest production version immediately."
+      )
+    ) {
+      try {
+        if ("caches" in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map((k) => caches.delete(k)));
+        }
+        if ("serviceWorker" in navigator) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(regs.map((r) => r.unregister()));
+        }
+      } catch (e) {
+        console.warn("Reset error:", e);
+      }
+      window.location.href = window.location.origin + window.location.pathname + "?_hard_reset=" + Date.now();
+    }
+  }, []);
+
   // Initial mount, online listeners, visibility/focus sync (runs ONCE on mount)
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -257,7 +280,18 @@ export default function BatchingPortal() {
       if (process.env.NODE_ENV === "production" && window.location.hostname !== "localhost") {
         navigator.serviceWorker
           .register("/sw.js")
+          .then((reg) => {
+            reg.update();
+          })
           .catch((err) => console.warn("[SW] Registration failed:", err));
+
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener("controllerchange", () => {
+          if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+          }
+        });
       } else {
         // In local development, unregister any active SW to prevent HMR / Fast Refresh reload loops
         navigator.serviceWorker.getRegistrations().then((registrations) => {
@@ -552,6 +586,27 @@ export default function BatchingPortal() {
           >
             {isDarkMode ? <Sun size={15} /> : <Moon size={15} />}
           </button>
+
+          {/* Hard Reset / Update Button */}
+          <button
+            type="button"
+            onClick={handleHardReset}
+            title="Hard Reset Cache & Reload Latest Version"
+            style={{
+              width: "32px",
+              height: "32px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: "8px",
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid var(--border)",
+              color: "var(--text-secondary)",
+              cursor: "pointer",
+            }}
+          >
+            <RefreshCw size={14} />
+          </button>
         </div>
       </header>
 
@@ -724,6 +779,7 @@ export default function BatchingPortal() {
         onClose={() => setIsDayModalOpen(false)}
         currentDay={batchingDay}
         onDayUpdated={handleDayUpdated}
+        onHardReset={handleHardReset}
       />
 
       <LoadDetailModal

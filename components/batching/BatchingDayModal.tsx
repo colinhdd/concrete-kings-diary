@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { X, User, Building2, Lock, Play, MapPin, ShieldCheck, Clock, CheckCircle2, Navigation, AlertCircle } from "lucide-react";
+import { X, User, Building2, Lock, Play, MapPin, ShieldCheck, Clock, CheckCircle2, Navigation, AlertCircle, RefreshCw } from "lucide-react";
 import { BatchingDay, startBatchingDay, closeBatchingDay } from "@/lib/db-batching";
 
 interface BatchingDayModalProps {
@@ -9,6 +9,7 @@ interface BatchingDayModalProps {
   onClose: () => void;
   currentDay: BatchingDay | null;
   onDayUpdated: (day: BatchingDay) => void;
+  onHardReset?: () => void;
 }
 
 const KNOWN_BATCHERS = [
@@ -25,6 +26,7 @@ export default function BatchingDayModal({
   onClose,
   currentDay,
   onDayUpdated,
+  onHardReset,
 }: BatchingDayModalProps) {
   const [batcherName, setBatcherName] = useState(currentDay?.batcherName || "Kevin Sutherland");
   const [plantName, setPlantName] = useState(currentDay?.plantName || "Concrete Kings Plant Yard");
@@ -176,7 +178,7 @@ export default function BatchingDayModal({
 
               <div className="modal-actions" style={{ marginTop: "8px" }}>
                 <button type="button" className="btn-secondary" onClick={onClose} style={{ flex: 1 }}>
-                  Return to Diary
+                   Return to Diary
                 </button>
                 <button
                   type="button"
@@ -188,6 +190,28 @@ export default function BatchingDayModal({
                   <Lock size={16} /> {isProcessing ? "Closing..." : "Clock Out Shift"}
                 </button>
               </div>
+
+              {onHardReset && (
+                <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid var(--border)", textAlign: "center" }}>
+                  <button
+                    type="button"
+                    onClick={onHardReset}
+                    className="btn-secondary"
+                    style={{
+                      width: "100%",
+                      padding: "8px",
+                      fontSize: "0.78rem",
+                      color: "var(--text-muted)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "6px",
+                    }}
+                  >
+                    <RefreshCw size={13} /> Hard Reset App &amp; Clear Site Cache
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>

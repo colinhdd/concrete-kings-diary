@@ -1,17 +1,12 @@
 // CK Central, Fuel & Batching - Offline-First Service Worker
-// Strategy: Network-first for fresh updates, offline-fallback cache
+// Strategy: Strict Network-First for HTML/Pages with Offline Fallback
 
-const CACHE_VERSION = "ck-apps-v5";
+const CACHE_VERSION = "ck-apps-v11";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
 // App shell assets to pre-cache on install
 const SHELL_ASSETS = [
-  "/",
-  "/batching",
-  "/gate",
-  "/fuel",
-  "/parts",
   "/favicon.svg",
   "/icons.svg",
   "/manifest-gate.json",
@@ -22,8 +17,9 @@ const SHELL_ASSETS = [
   "/parts-icon.png",
 ];
 
-// ── Install: pre-cache the app shell ───────────────────────────────────────
+// ── Install: pre-cache assets and skip waiting immediately ───────────────────
 self.addEventListener("install", (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(SHELL_CACHE).then(async (cache) => {
       await Promise.allSettled(
@@ -35,21 +31,22 @@ self.addEventListener("install", (event) => {
       );
     })
   );
-  self.skipWaiting();
 });
 
-// ── Activate: purge all old caches immediately ─────────────────────────────
+// ── Activate: purge ALL old caches and claim clients immediately ─────────────
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((names) =>
       Promise.all(
         names
           .filter((n) => n !== SHELL_CACHE && n !== RUNTIME_CACHE)
-          .map((n) => caches.delete(n))
+          .map((n) => {
+            console.log(`[SW] Deleting obsolete cache: ${n}`);
+            return caches.delete(n);
+          })
       )
-    )
+    ).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 // ── Fetch: network-first with offline fallback ─────────────────────────────
@@ -57,7 +54,7 @@ self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // 1. Skip non-GET requests, cross-origin requests, internal Next.js assets, and HMR
+  // 1. Skip non-GET requests, cross-origin requests, Next.js internal chunks, and HMR
   if (
     request.method !== "GET" ||
     url.origin !== self.location.origin ||
@@ -75,11 +72,10 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 3. For all pages and assets: try network first, then cache, then offline shell
+  // 3. For pages and assets: Network first, cache fallback if offline
   event.respondWith(
-    fetch(request)
+    fetch(request, { cache: "no-store" })
       .then((response) => {
-        // Cache successful response in runtime cache
         if (response.ok && response.type === "basic") {
           const clone = response.clone();
           caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, clone));
