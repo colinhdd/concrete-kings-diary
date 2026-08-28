@@ -1654,93 +1654,6 @@ export default function NewLoadForm({
             </div>
           )}
 
-          {/* Batch Quality & Performance Prediction (Live feedback in Step 2) */}
-          {batchPhysics && (
-            <div
-              style={{
-                padding: "16px 18px",
-                borderRadius: "14px",
-                backgroundColor: "rgba(16, 185, 129, 0.08)",
-                border: "1.5px solid rgba(16, 185, 129, 0.25)",
-                display: "flex",
-                flexDirection: "column",
-                gap: "12px",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: "0.85rem", fontWeight: "800", color: "#10b981", display: "flex", alignItems: "center", gap: "6px" }}>
-                  <Sparkles size={16} /> Batch Quality & Performance Prediction
-                </span>
-                <span
-                  style={{
-                    fontSize: "0.75rem",
-                    fontWeight: "800",
-                    padding: "3px 8px",
-                    borderRadius: "6px",
-                    backgroundColor:
-                      batchPhysics.wcStatus === "Optimal"
-                        ? "rgba(16, 185, 129, 0.2)"
-                        : batchPhysics.wcStatus === "Acceptable"
-                        ? "rgba(245, 158, 11, 0.2)"
-                        : "rgba(239, 68, 68, 0.2)",
-                    color:
-                      batchPhysics.wcStatus === "Optimal"
-                        ? "#10b981"
-                        : batchPhysics.wcStatus === "Acceptable"
-                        ? "#f59e0b"
-                        : "#ef4444",
-                  }}
-                >
-                  W/C: {batchPhysics.wcRatio} ({batchPhysics.wcStatus})
-                </span>
-              </div>
-
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(105px, 1fr))",
-                  gap: "8px",
-                  fontSize: "0.8rem",
-                }}
-              >
-                <div style={{ backgroundColor: "var(--bg-tertiary)", padding: "8px 10px", borderRadius: "8px", textAlign: "center" }}>
-                  <div style={{ color: "var(--text-secondary)", fontSize: "0.68rem" }}>W/C Target</div>
-                  <strong style={{ color: "var(--text-primary)" }}>{batchPhysics.wcTarget}</strong>
-                </div>
-
-                <div style={{ backgroundColor: "var(--bg-tertiary)", padding: "8px 10px", borderRadius: "8px", textAlign: "center" }}>
-                  <div style={{ color: "var(--text-secondary)", fontSize: "0.68rem" }}>Est. Set Time</div>
-                  <strong style={{ color: "var(--text-primary)" }}>{batchPhysics.settingTimeFormatted}</strong>
-                </div>
-
-                <div style={{ backgroundColor: "var(--bg-tertiary)", padding: "8px 10px", borderRadius: "8px", textAlign: "center" }}>
-                  <div style={{ color: "var(--text-secondary)", fontSize: "0.68rem" }}>Aggregate Ratio</div>
-                  <strong style={{ color: "#3b82f6" }}>
-                    {batchPhysics.aggregateRatio?.ratioFormatted || "60:40"}{" "}
-                    <span style={{ fontSize: "0.68rem", fontWeight: "normal", color: "var(--text-muted)" }}>
-                      (Sand:Stone)
-                    </span>
-                  </strong>
-                </div>
-
-                <div style={{ backgroundColor: "var(--bg-tertiary)", padding: "8px 10px", borderRadius: "8px", textAlign: "center" }}>
-                  <div style={{ color: "var(--text-secondary)", fontSize: "0.68rem" }}>28d Strength</div>
-                  <strong style={{ color: "#10b981" }}>{batchPhysics.strength.s28d.toLocaleString()} PSI</strong>
-                </div>
-
-                <div style={{ backgroundColor: "var(--bg-tertiary)", padding: "8px 10px", borderRadius: "8px", textAlign: "center" }}>
-                  <div style={{ color: "var(--text-secondary)", fontSize: "0.68rem" }}>Paste Fraction</div>
-                  <strong style={{ color: "var(--text-primary)" }}>{batchPhysics.paste.pastePct}% ({batchPhysics.paste.pasteStatus})</strong>
-                </div>
-
-                <div style={{ backgroundColor: "var(--bg-tertiary)", padding: "8px 10px", borderRadius: "8px", textAlign: "center" }}>
-                  <div style={{ color: "var(--text-secondary)", fontSize: "0.68rem" }}>Batch Yield</div>
-                  <strong style={{ color: "#e05300" }}>{batchPhysics.yieldCYD} yd³</strong>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Wizard Navigation */}
           <div style={{ marginTop: "10px", display: "flex", justifyContent: "space-between" }}>
             <button
@@ -1825,99 +1738,93 @@ export default function NewLoadForm({
               </div>
             </div>
 
-            <div style={{ borderTop: "1px solid var(--glass-border)", paddingTop: "6px", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "6px" }}>
-              <div>
-                <span style={{ fontSize: "0.65rem", color: "var(--text-secondary)" }}>Design Water</span>
-                <div style={{ fontSize: "0.95rem", fontWeight: "800", color: "#3b82f6" }}>
-                  {expectedBatchWaterL} L
+            {/* Batch Quality & Performance Prediction replacing verbose batching information */}
+            {batchPhysics && (
+              <div
+                style={{
+                  marginTop: "4px",
+                  padding: "12px 14px",
+                  borderRadius: "10px",
+                  backgroundColor: "rgba(16, 185, 129, 0.08)",
+                  border: "1.5px solid rgba(16, 185, 129, 0.25)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: "0.85rem", fontWeight: "800", color: "#10b981", display: "flex", alignItems: "center", gap: "6px" }}>
+                    <Sparkles size={16} /> Batch Quality & Performance Prediction
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "0.75rem",
+                      fontWeight: "800",
+                      padding: "3px 8px",
+                      borderRadius: "6px",
+                      backgroundColor:
+                        batchPhysics.wcStatus === "Optimal"
+                          ? "rgba(16, 185, 129, 0.2)"
+                          : batchPhysics.wcStatus === "Acceptable"
+                          ? "rgba(245, 158, 11, 0.2)"
+                          : "rgba(239, 68, 68, 0.2)",
+                      color:
+                        batchPhysics.wcStatus === "Optimal"
+                          ? "#10b981"
+                          : batchPhysics.wcStatus === "Acceptable"
+                          ? "#f59e0b"
+                          : "#ef4444",
+                    }}
+                  >
+                    W/C: {batchPhysics.wcRatio} ({batchPhysics.wcStatus})
+                  </span>
                 </div>
-              </div>
-              <div>
-                <span style={{ fontSize: "0.65rem", color: "var(--text-secondary)" }}>Actual Added</span>
-                <div style={{ fontSize: "0.95rem", fontWeight: "800", color: "var(--text-primary)" }}>
-                  {actualWaterNum} L
-                </div>
-              </div>
-              <div>
-                <span style={{ fontSize: "0.65rem", color: "var(--text-secondary)" }}>Water Trim</span>
+
                 <div
                   style={{
-                    fontSize: "0.95rem",
-                    fontWeight: "800",
-                    color:
-                      waterTruckAdjustment > 0
-                        ? "#f59e0b"
-                        : waterTruckAdjustment < 0
-                        ? "#3b82f6"
-                        : "#10b981",
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(105px, 1fr))",
+                    gap: "8px",
+                    fontSize: "0.8rem",
                   }}
                 >
-                  {waterTruckAdjustment > 0 ? `+${waterTruckAdjustment}` : waterTruckAdjustment} L
-                </div>
-              </div>
-            </div>
+                  <div style={{ backgroundColor: "var(--bg-secondary)", padding: "8px 10px", borderRadius: "8px", textAlign: "center" }}>
+                    <div style={{ color: "var(--text-secondary)", fontSize: "0.68rem" }}>W/C Target</div>
+                    <strong style={{ color: "var(--text-primary)" }}>{batchPhysics.wcTarget}</strong>
+                  </div>
 
-            {/* Material Batching Breakdown (Chemicals, Sand, Stone, Cement) */}
-            <div style={{ borderTop: "1px solid var(--glass-border)", paddingTop: "6px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: "6px" }}>
-              <div>
-                <span style={{ fontSize: "0.65rem", color: "var(--text-secondary)" }}>Plasticizer</span>
-                <div style={{ fontSize: "0.95rem", fontWeight: "800", color: "#8b5cf6" }}>
-                  {totalPlasticizerBatchOz} fl oz <span style={{ fontSize: "0.72rem", fontWeight: "600", color: "var(--text-muted)" }}>({Math.round(flOzToMl(totalPlasticizerBatchOz)).toLocaleString()} mL)</span>
-                </div>
-                <div style={{ fontSize: "0.62rem", color: "var(--text-muted)" }}>
-                  {effPlRate.toFixed(1)} oz/yd³
-                </div>
-              </div>
-              {totalRetarderBatchOz > 0 && (
-                <div>
-                  <span style={{ fontSize: "0.65rem", color: "var(--text-secondary)" }}>Retarder</span>
-                  <div style={{ fontSize: "0.95rem", fontWeight: "800", color: "#f59e0b" }}>
-                    {totalRetarderBatchOz} fl oz <span style={{ fontSize: "0.72rem", fontWeight: "600", color: "var(--text-muted)" }}>({Math.round(flOzToMl(totalRetarderBatchOz)).toLocaleString()} mL)</span>
+                  <div style={{ backgroundColor: "var(--bg-secondary)", padding: "8px 10px", borderRadius: "8px", textAlign: "center" }}>
+                    <div style={{ color: "var(--text-secondary)", fontSize: "0.68rem" }}>Est. Set Time</div>
+                    <strong style={{ color: "var(--text-primary)" }}>{batchPhysics.settingTimeFormatted}</strong>
                   </div>
-                  <div style={{ fontSize: "0.62rem", color: "var(--text-muted)" }}>
-                    {effRetRate.toFixed(1)} oz/yd³
+
+                  <div style={{ backgroundColor: "var(--bg-secondary)", padding: "8px 10px", borderRadius: "8px", textAlign: "center" }}>
+                    <div style={{ color: "var(--text-secondary)", fontSize: "0.68rem" }}>Aggregate Ratio</div>
+                    <strong style={{ color: "#3b82f6" }}>
+                      {batchPhysics.aggregateRatio?.ratioFormatted || "60:40"}{" "}
+                      <span style={{ fontSize: "0.68rem", fontWeight: "normal", color: "var(--text-muted)" }}>
+                        (Sand:Stone)
+                      </span>
+                    </strong>
                   </div>
-                </div>
-              )}
-              <div>
-                <span style={{ fontSize: "0.65rem", color: "var(--text-secondary)" }}>Sand ({sandMoisturePct}% Moist)</span>
-                <div style={{ fontSize: "0.95rem", fontWeight: "800", color: "#e05300" }}>
-                  {actualSandNum} kg
-                </div>
-                <div style={{ fontSize: "0.62rem", color: "var(--text-muted)" }}>
-                  {effSandRate} kg/yd³
-                </div>
-              </div>
-              <div>
-                <span style={{ fontSize: "0.65rem", color: "var(--text-secondary)" }}>¾ Stone ({stoneMoisturePct}% Moist)</span>
-                <div style={{ fontSize: "0.95rem", fontWeight: "800", color: "#10b981" }}>
-                  {totalStoneBatchKg} kg
-                </div>
-                <div style={{ fontSize: "0.62rem", color: "var(--text-muted)" }}>
-                  {effStoneRate} kg/yd³
-                </div>
-              </div>
-              {totalStone38BatchKg > 0 && (
-                <div>
-                  <span style={{ fontSize: "0.65rem", color: "var(--text-secondary)" }}>⅜ Stone ({stoneMoisturePct}% Moist)</span>
-                  <div style={{ fontSize: "0.95rem", fontWeight: "800", color: "#10b981" }}>
-                    {totalStone38BatchKg} kg
+
+                  <div style={{ backgroundColor: "var(--bg-secondary)", padding: "8px 10px", borderRadius: "8px", textAlign: "center" }}>
+                    <div style={{ color: "var(--text-secondary)", fontSize: "0.68rem" }}>28d Strength</div>
+                    <strong style={{ color: "#10b981" }}>{batchPhysics.strength.s28d.toLocaleString()} PSI</strong>
                   </div>
-                  <div style={{ fontSize: "0.62rem", color: "var(--text-muted)" }}>
-                    {effStone38Rate} kg/yd³
+
+                  <div style={{ backgroundColor: "var(--bg-secondary)", padding: "8px 10px", borderRadius: "8px", textAlign: "center" }}>
+                    <div style={{ color: "var(--text-secondary)", fontSize: "0.68rem" }}>Paste Fraction</div>
+                    <strong style={{ color: "var(--text-primary)" }}>{batchPhysics.paste.pastePct}% ({batchPhysics.paste.pasteStatus})</strong>
+                  </div>
+
+                  <div style={{ backgroundColor: "var(--bg-secondary)", padding: "8px 10px", borderRadius: "8px", textAlign: "center" }}>
+                    <div style={{ color: "var(--text-secondary)", fontSize: "0.68rem" }}>Batch Yield</div>
+                    <strong style={{ color: "#e05300" }}>{batchPhysics.yieldCYD} yd³</strong>
                   </div>
                 </div>
-              )}
-              <div>
-                <span style={{ fontSize: "0.65rem", color: "var(--text-secondary)" }}>Cement</span>
-                <div style={{ fontSize: "0.95rem", fontWeight: "800", color: "#3b82f6" }}>
-                  {totalCementBatchKg} kg
-                </div>
-                <div style={{ fontSize: "0.62rem", color: "var(--text-muted)" }}>
-                  {effCementRate} kg/yd³
-                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Action Buttons */}
