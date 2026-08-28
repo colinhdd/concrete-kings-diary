@@ -232,22 +232,17 @@ export default function BatchingPortal() {
         setLastRecipeSyncTime(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
       }
 
-      if (result.success) {
-        if (result.syncedCount > 0) {
-          setSyncFeedback(`Synced ${result.syncedCount} load${result.syncedCount > 1 ? "s" : ""} & pulled latest recipes from Google Sheet`);
-        } else {
-          setSyncFeedback(`Pulled latest recipes from Recipes Google Sheet`);
-        }
-      } else if (result.error && result.error !== "Offline") {
-        setSyncFeedback(`Sync notice: ${result.error}`);
+      if (!result.success && result.error && result.error !== "Offline") {
+        setSyncFeedback(`Sync error: ${result.error}`);
       }
     } catch (err: any) {
       console.warn("Sync handler error:", err);
+      setSyncFeedback(`Sync error: ${err.message || "Failed to sync"}`);
     } finally {
       isSyncingRef.current = false;
       setIsSyncing(false);
       await refreshRef.current();
-      setTimeout(() => setSyncFeedback(null), 3500);
+      setTimeout(() => setSyncFeedback(null), 5000);
     }
   }, []);
 
@@ -560,26 +555,26 @@ export default function BatchingPortal() {
         </div>
       </header>
 
-      {/* Cloud Sync Feedback Banner */}
+      {/* Cloud Sync Error Feedback Banner (Only displayed on error) */}
       {syncFeedback && (
         <div
           style={{
-            backgroundColor: syncFeedback.includes("Failed") ? "rgba(239, 68, 68, 0.15)" : "rgba(16, 185, 129, 0.15)",
-            color: syncFeedback.includes("Failed") ? "#ef4444" : "#10b981",
+            backgroundColor: "rgba(239, 68, 68, 0.15)",
+            color: "#ef4444",
             padding: "8px 16px",
-            fontSize: "0.85rem",
-            fontWeight: "600",
+            fontSize: "0.82rem",
+            fontWeight: "700",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            borderBottom: "1px solid var(--glass-border)",
+            borderBottom: "1px solid rgba(239, 68, 68, 0.3)",
           }}
         >
-          <span>{syncFeedback}</span>
+          <span>⚠️ {syncFeedback}</span>
           <button
             type="button"
             onClick={() => setSyncFeedback(null)}
-            style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", padding: 0 }}
+            style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", padding: "0 4px", fontSize: "1rem" }}
           >
             &times;
           </button>
