@@ -442,6 +442,25 @@ export default function HomeScreen({
 
                   {/* Review Flags & Actions Chips */}
                   <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+                    {load.observedSlumpInches !== undefined && (
+                      <span
+                        style={{
+                          padding: "5px 10px",
+                          borderRadius: "8px",
+                          fontSize: "0.82rem",
+                          fontWeight: "800",
+                          backgroundColor: "rgba(59, 130, 246, 0.18)",
+                          color: "#60a5fa",
+                          border: "1px solid rgba(59, 130, 246, 0.4)",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "5px",
+                        }}
+                      >
+                        💧 Slump: {load.observedSlumpInches}&quot;
+                      </span>
+                    )}
+
                     {isDidNotReview && (
                       <span
                         style={{
@@ -469,9 +488,9 @@ export default function HomeScreen({
                           borderRadius: "8px",
                           fontSize: "0.82rem",
                           fontWeight: "800",
-                          backgroundColor: "rgba(245, 158, 11, 0.18)",
-                          color: "#f59e0b",
-                          border: "1px solid rgba(245, 158, 11, 0.4)",
+                          backgroundColor: "rgba(239, 68, 68, 0.18)",
+                          color: "#ef4444",
+                          border: "1px solid rgba(239, 68, 68, 0.4)",
                           display: "flex",
                           alignItems: "center",
                           gap: "5px",
