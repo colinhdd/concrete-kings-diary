@@ -763,36 +763,36 @@ export default function NewLoadForm({
   }, [effectiveMixes]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-      {/* Top Header & Step Progress Bar */}
-      <div className="glass-panel" style={{ padding: "16px 20px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", flexWrap: "wrap", gap: "10px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+      {/* Top Header */}
+      <div className="glass-panel" style={{ padding: "10px 12px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <button
               type="button"
               onClick={handlePrevStep}
               className="btn-secondary"
-              style={{ padding: "8px 12px", display: "flex", alignItems: "center", gap: "6px", fontSize: "0.85rem" }}
+              style={{ padding: "6px 10px", display: "flex", alignItems: "center", gap: "4px", fontSize: "0.82rem", minHeight: "34px" }}
             >
-              <ArrowLeft size={16} /> {currentStep === 1 ? (initialValues?.id ? "Cancel Edit" : "Exit") : "Back"}
+              <ArrowLeft size={15} /> {currentStep === 1 ? (initialValues?.id ? "Cancel Edit" : "Exit") : "Back"}
             </button>
-            <h2 style={{ margin: 0, fontSize: "1.25rem", color: "var(--text-primary)", fontWeight: "800" }}>
+            <h2 style={{ margin: 0, fontSize: "1.1rem", color: "var(--text-primary)", fontWeight: "800" }}>
               {initialValues?.id ? "Edit Batched Load" : "New Batching Load"}
             </h2>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-            <span className="badge synced" style={{ fontSize: "0.85rem", fontWeight: "800", letterSpacing: "0.02em" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+            <span className="badge synced" style={{ fontSize: "0.8rem", fontWeight: "800", letterSpacing: "0.02em", padding: "3px 8px" }}>
               Batch #{initialValues?.batchNumber || currentBatchNumber}
             </span>
             {activeTruck?.code && (
               <span
                 style={{
-                  padding: "4px 8px",
+                  padding: "3px 8px",
                   borderRadius: "6px",
                   backgroundColor: "rgba(224, 83, 0, 0.15)",
                   color: "#e05300",
-                  fontSize: "0.82rem",
+                  fontSize: "0.8rem",
                   fontWeight: "800",
                 }}
               >
@@ -802,11 +802,11 @@ export default function NewLoadForm({
             {activeMix?.code && (
               <span
                 style={{
-                  padding: "4px 8px",
+                  padding: "3px 8px",
                   borderRadius: "6px",
                   backgroundColor: "rgba(59, 130, 246, 0.15)",
                   color: "#3b82f6",
-                  fontSize: "0.82rem",
+                  fontSize: "0.8rem",
                   fontWeight: "800",
                 }}
               >
@@ -819,24 +819,25 @@ export default function NewLoadForm({
         {initialValues?.id && (
           <div
             style={{
-              padding: "12px 16px",
-              borderRadius: "12px",
+              marginTop: "8px",
+              padding: "8px 12px",
+              borderRadius: "8px",
               backgroundColor: "rgba(59, 130, 246, 0.12)",
               border: "1.5px solid rgba(59, 130, 246, 0.35)",
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
               flexWrap: "wrap",
-              gap: "8px",
+              gap: "6px",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <span style={{ fontSize: "1.2rem" }}>✏️</span>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontSize: "1.1rem" }}>✏️</span>
               <div>
-                <strong style={{ color: "var(--text-primary)", fontSize: "0.92rem" }}>
+                <strong style={{ color: "var(--text-primary)", fontSize: "0.85rem" }}>
                   Editing Batch #{initialValues.batchNumber || initialValues.id}
                 </strong>
-                <div style={{ fontSize: "0.78rem", color: "var(--text-secondary)" }}>
+                <div style={{ fontSize: "0.74rem", color: "var(--text-secondary)" }}>
                   Prepopulated with recorded batch info. Make changes and confirm to update record.
                 </div>
               </div>
@@ -845,82 +846,12 @@ export default function NewLoadForm({
               type="button"
               onClick={onCancel}
               className="btn-secondary"
-              style={{ padding: "6px 14px", fontSize: "0.8rem", fontWeight: "700" }}
+              style={{ padding: "4px 10px", fontSize: "0.75rem", fontWeight: "700", minHeight: "30px" }}
             >
               Cancel Edit
             </button>
           </div>
         )}
-
-        {/* Step Navigation Pills */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: `repeat(${STEPS.length}, 1fr)`,
-            gap: "8px",
-          }}
-        >
-          {STEPS.map((s) => {
-            const Icon = s.icon;
-            const isActive = currentStep === s.id;
-            const isCompleted = currentStep > s.id;
-
-            // Dynamic contextual label based on user selections
-            let displayLabel = s.label;
-            if (s.id === 1 && activeTruck?.code) {
-              displayLabel = activeTruck.code;
-            } else if (s.id === 2 && activeMix?.code) {
-              displayLabel = `${activeMix.code} (${quantity}y)`;
-            } else if (s.id === 3 && isCompleted && selectedObs.length > 0) {
-              displayLabel = selectedObs[0];
-            }
-
-            return (
-              <button
-                type="button"
-                key={s.id}
-                onClick={() => setCurrentStep(s.id)}
-                style={{
-                  padding: "8px 4px",
-                  borderRadius: "10px",
-                  border: isActive
-                    ? "2px solid #e05300"
-                    : isCompleted
-                    ? "1px solid rgba(16, 185, 129, 0.4)"
-                    : "1px solid var(--glass-border)",
-                  backgroundColor: isActive
-                    ? "rgba(224, 83, 0, 0.18)"
-                    : isCompleted
-                    ? "rgba(16, 185, 129, 0.08)"
-                    : "var(--bg-tertiary)",
-                  color: isActive
-                    ? "#e05300"
-                    : isCompleted
-                    ? "#10b981"
-                    : "var(--text-secondary)",
-                  cursor: "pointer",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "3px",
-                  transition: "all 0.15s ease",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                  minHeight: "44px",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "3px", maxWidth: "100%", overflow: "hidden" }}>
-                  {isCompleted ? <Check size={13} style={{ flexShrink: 0 }} /> : <Icon size={14} style={{ flexShrink: 0 }} />}
-                  <span style={{ fontSize: "0.75rem", fontWeight: "800", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {displayLabel}
-                  </span>
-                </div>
-              </button>
-            );
-          })}
-        </div>
       </div>
 
       {/* ================= STEP 1: TRUCK & JOB NUMBER ================= */}
