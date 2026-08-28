@@ -894,27 +894,6 @@ export async function seedInitialData() {
       await db.put("settings", { key, value });
     }
   }
-
-  // Ensure an active batching day exists for today so logging batches is never blocked
-  const todayStr = getLocalDateString();
-  const allDays = await db.getAll("batching_days");
-  const openToday = allDays.find((d) => d.status === "open" && d.date === todayStr);
-  if (!openToday) {
-    const newDay: BatchingDay = {
-      id: `day_${todayStr}_${generateUUID().slice(0, 8)}`,
-      date: todayStr,
-      batcherId: "batcher_01",
-      batcherName: "Kevin Sutherland",
-      plantId: "plant_yard_1",
-      plantName: "Concrete Kings Plant Yard",
-      startTime: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      status: "open",
-      totalLoads: 0,
-      totalVolume: 0,
-      createdAt: Date.now(),
-    };
-    await db.put("batching_days", newDay);
-  }
 }
 
 // === WATER CALCULATION UTILITY ===
