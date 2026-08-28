@@ -813,9 +813,6 @@ export default function NewLoadForm({
                 🧱 {activeMix.code} ({quantity} yd³)
               </span>
             )}
-            <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)", fontWeight: "700" }}>
-              Step {currentStep} of {STEPS.length}
-            </span>
           </div>
         </div>
 
