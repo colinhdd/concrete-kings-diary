@@ -1638,7 +1638,9 @@ export async function syncRecipesFromCloud(force = false): Promise<MixDesign[]> 
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data.recipes) && data.recipes.length > 0) {
+        // Clear all old/stale mix designs first, then insert fresh cloud data
         const tx = db.transaction("mix_designs", "readwrite");
+        await tx.store.clear();
         for (const r of data.recipes) {
           await tx.store.put(r);
         }
