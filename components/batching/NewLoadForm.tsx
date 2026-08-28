@@ -422,11 +422,11 @@ export default function NewLoadForm({
     });
   }, [activeMix, quantity, sandMoisturePct, stoneMoisturePct, cementAdjPerYard, sandAdjPerYard, stoneAdjPerYard, stone38AdjPerYard, waterAdjPerYard, plasticizerAdjPerYard, retarderAdjPerYard]);
 
-  // 5. Observations (Mandatory - Default to "Perfect" for speed)
+  // 5. Observations (Optional - Default to empty)
   const [selectedObs, setSelectedObs] = useState<string[]>(
     Array.isArray(initialValues?.concreteObservations) && initialValues.concreteObservations.length > 0
-      ? initialValues.concreteObservations
-      : ["Perfect"]
+      ? initialValues.concreteObservations.filter((o) => o !== "Perfect" && o !== "Normal")
+      : []
   );
   const [customObsText, setCustomObsText] = useState<string>("");
 
@@ -444,20 +444,15 @@ export default function NewLoadForm({
   const [pendingWarningMessage, setPendingWarningMessage] = useState<string>("");
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
-  // Toggle observation with "Perfect" exclusivity
-  const handleToggleObservation = (label: string, isNormalOption: boolean) => {
-    if (isNormalOption || label === "Perfect" || label === "Normal") {
-      setSelectedObs(["Perfect"]);
+  // Toggle observation
+  const handleToggleObservation = (label: string) => {
+    let updated = [...selectedObs];
+    if (updated.includes(label)) {
+      updated = updated.filter((o) => o !== label);
     } else {
-      let updated = selectedObs.filter((o) => o !== "Perfect" && o !== "Normal");
-      if (updated.includes(label)) {
-        updated = updated.filter((o) => o !== label);
-        if (updated.length === 0) updated = ["Perfect"];
-      } else {
-        updated.push(label);
-      }
-      setSelectedObs(updated);
+      updated.push(label);
     }
+    setSelectedObs(updated);
   };
 
   // Toggle adjustment option
@@ -667,7 +662,7 @@ export default function NewLoadForm({
             actualThreeEighthStone: totalStone38BatchKg,
             actualPlasticizer: totalPlasticizerBatchOz,
             actualRetarder: totalRetarderBatchOz,
-            concreteObservations: allObs.length > 0 ? allObs : ["Perfect"],
+            concreteObservations: allObs,
             batchAdjustments: allAdjustments,
             stoneAdjPerYard,
             stone38AdjPerYard,
@@ -708,7 +703,7 @@ export default function NewLoadForm({
           actualThreeEighthStone: totalStone38BatchKg,
           actualPlasticizer: totalPlasticizerBatchOz,
           actualRetarder: totalRetarderBatchOz,
-          concreteObservations: allObs.length > 0 ? allObs : ["Perfect"],
+          concreteObservations: allObs,
           batchAdjustments: allAdjustments,
           stoneAdjPerYard,
           stone38AdjPerYard,

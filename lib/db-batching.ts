@@ -754,18 +754,17 @@ export const DEFAULT_TRUCKS: Truck[] = [
 ];
 
 export const DEFAULT_OBSERVATIONS: ObservationOption[] = [
-  { id: "obs_normal", label: "Perfect", isNormal: true, sortOrder: 1, active: true },
-  { id: "obs_too_dry", label: "Too Dry", isNormal: false, sortOrder: 2, active: true },
-  { id: "obs_too_wet", label: "Too Wet", isNormal: false, sortOrder: 3, active: true },
-  { id: "obs_too_bony", label: "Too Bony / Too Much Stone", isNormal: false, sortOrder: 4, active: true },
-  { id: "obs_too_sandy", label: "Too Sandy / Too Much Sand", isNormal: false, sortOrder: 5, active: true },
-  { id: "obs_low_paste", label: "Low Paste / Appears Low in Cement", isNormal: false, sortOrder: 6, active: true },
-  { id: "obs_stiff", label: "Stiff", isNormal: false, sortOrder: 7, active: true },
-  { id: "obs_creamy", label: "Creamy / Paste Rich", isNormal: false, sortOrder: 8, active: true },
-  { id: "obs_segregating", label: "Segregating", isNormal: false, sortOrder: 9, active: true },
-  { id: "obs_vol_low", label: "Volume appears too low", isNormal: false, sortOrder: 10, active: true },
-  { id: "obs_vol_high", label: "Volume appears to high (spilling from truck)", isNormal: false, sortOrder: 11, active: true },
-  { id: "obs_other", label: "Other", isNormal: false, sortOrder: 12, active: true },
+  { id: "obs_too_dry", label: "Too Dry", isNormal: false, sortOrder: 1, active: true },
+  { id: "obs_too_wet", label: "Too Wet", isNormal: false, sortOrder: 2, active: true },
+  { id: "obs_too_bony", label: "Too Bony / Too Much Stone", isNormal: false, sortOrder: 3, active: true },
+  { id: "obs_too_sandy", label: "Too Sandy / Too Much Sand", isNormal: false, sortOrder: 4, active: true },
+  { id: "obs_low_paste", label: "Low Paste / Appears Low in Cement", isNormal: false, sortOrder: 5, active: true },
+  { id: "obs_stiff", label: "Stiff", isNormal: false, sortOrder: 6, active: true },
+  { id: "obs_creamy", label: "Creamy / Paste Rich", isNormal: false, sortOrder: 7, active: true },
+  { id: "obs_segregating", label: "Segregating", isNormal: false, sortOrder: 8, active: true },
+  { id: "obs_vol_low", label: "Volume appears too low", isNormal: false, sortOrder: 9, active: true },
+  { id: "obs_vol_high", label: "Volume appears to high (spilling from truck)", isNormal: false, sortOrder: 10, active: true },
+  { id: "obs_other", label: "Other", isNormal: false, sortOrder: 11, active: true },
 ];
 
 export const DEFAULT_ADJUSTMENTS: AdjustmentOption[] = [
@@ -836,6 +835,7 @@ export async function seedInitialData() {
     await tx.done;
   } else {
     const tx = db.transaction("observation_options", "readwrite");
+    await tx.store.delete("obs_normal");
     await tx.store.delete("obs_harsh");
     await tx.store.delete("obs_poor_cohesion");
     await tx.store.delete("obs_spilling");

@@ -88,18 +88,18 @@ export default function HomeScreen({
     const counts: Record<string, number> = {};
     loadsList.forEach((load) => {
       const obs = Array.isArray(load.concreteObservations) && load.concreteObservations.length > 0
-        ? load.concreteObservations
-        : ["Perfect"];
+        ? load.concreteObservations.filter((o) => o !== "Pending Review" && o !== "Perfect" && o !== "Normal")
+        : [];
       obs.forEach((o) => {
         counts[o] = (counts[o] || 0) + 1;
       });
     });
     return Object.entries(counts).map(([label, count]) => {
-      const isPerfect = label.toLowerCase() === "perfect" || label.toLowerCase() === "normal";
+      const isNormal = label.toLowerCase() === "normal" || label.toLowerCase().startsWith("normal (");
       return {
         label,
         count,
-        isWarning: !isPerfect,
+        isWarning: !isNormal,
         isIssue: label.toLowerCase().includes("issue") || label.toLowerCase().includes("fail") || label.toLowerCase().includes("wet") || label.toLowerCase().includes("hot"),
       };
     });

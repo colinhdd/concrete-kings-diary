@@ -70,12 +70,13 @@ export function getSlumpMonicker(slump: number): {
 }
 
 const ACTION_OPTIONS = [
-  "Fixed at Plant",
+  "Added Water",
+  "Added Plasticizer",
+  "Added Retarder",
+  "Added Sand",
+  "Added Cement",
   "Run Out / Discharged",
   "Mixed Extra 5 Mins",
-  "Added Water at Plant",
-  "Added Plasticizer at Plant",
-  "Added Retarder at Plant",
   "Dispatched As-Is",
   "Rejected / Dumped",
 ];
@@ -681,7 +682,7 @@ export default function ObservationReview({
                 className="form-input"
                 value={actionDetails}
                 onChange={(e) => setActionDetails(e.target.value)}
-                placeholder="e.g. Fixed at plant: ran out 0.5 yd³ into pit, adjusted water for next load"
+                placeholder="e.g. Added 20L water, ran out 0.5 yd³ into pit, adjusted water for next load"
                 style={{ fontSize: "0.88rem", padding: "10px 12px" }}
               />
             </div>
@@ -1008,9 +1009,13 @@ export default function ObservationReview({
                           <span style={{ fontSize: "0.72rem", fontWeight: "800", padding: "3px 8px", borderRadius: "6px", backgroundColor: "rgba(239, 68, 68, 0.15)", color: "#ef4444" }}>
                             ⚠ Issues Logged ({obs.length})
                           </span>
+                        ) : load.observedSlumpInches !== undefined ? (
+                          <span style={{ fontSize: "0.72rem", fontWeight: "800", padding: "3px 8px", borderRadius: "6px", backgroundColor: "rgba(16, 185, 129, 0.15)", color: "#10b981" }}>
+                            ✓ Slump: {load.observedSlumpInches}&quot;
+                          </span>
                         ) : (
                           <span style={{ fontSize: "0.72rem", fontWeight: "800", padding: "3px 8px", borderRadius: "6px", backgroundColor: "rgba(16, 185, 129, 0.15)", color: "#10b981" }}>
-                            ✓ {obs[0] || "Condition: Normal"}
+                            ✓ Reviewed
                           </span>
                         )}
                       </div>
