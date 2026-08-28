@@ -160,10 +160,10 @@ export async function GET(request: NextRequest) {
       meta.data.sheets?.find(
         (s) =>
           String(s.properties?.sheetId) === COOK_BOOK_GID ||
-          s.properties?.title === "Cooking Station"
+          s.properties?.title === "Recipes"
       ) || meta.data.sheets?.[0];
 
-    const tabTitle = targetSheet?.properties?.title || "Cooking Station";
+    const tabTitle = targetSheet?.properties?.title || "Recipes";
     const rows = await getSheetValues(COOK_BOOK_SPREADSHEET_ID, `'${tabTitle}'!A1:Z100`);
 
     const recipes = parseRecipesFromRows(rows as string[][]);

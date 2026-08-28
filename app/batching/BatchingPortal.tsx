@@ -236,7 +236,7 @@ export default function BatchingPortal() {
         if (result.syncedCount > 0) {
           setSyncFeedback(`Synced ${result.syncedCount} load${result.syncedCount > 1 ? "s" : ""} & pulled latest recipes from Google Sheet`);
         } else {
-          setSyncFeedback(`Pulled latest recipes from Cooking Station Google Sheet`);
+          setSyncFeedback(`Pulled latest recipes from Recipes Google Sheet`);
         }
       } else if (result.error && result.error !== "Offline") {
         setSyncFeedback(`Sync notice: ${result.error}`);

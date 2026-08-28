@@ -260,7 +260,7 @@ export default function HomeScreen({
             }}
           />
           <span>
-            <strong style={{ color: "var(--text-primary)" }}>Cooking Station</strong>: {recipesCount} live recipes {lastRecipeSyncTime ? `(${lastRecipeSyncTime})` : "(active)"}
+            <strong style={{ color: "var(--text-primary)" }}>Recipes Sheet</strong>: {recipesCount} live recipes {lastRecipeSyncTime ? `(${lastRecipeSyncTime})` : "(active)"}
           </span>
         </div>
         <button
@@ -280,7 +280,7 @@ export default function HomeScreen({
             padding: "2px 4px",
           }}
         >
-          <Activity size={11} className={isSyncing ? "spin" : ""} /> {isSyncing ? "Syncing..." : "Pull Sheet"}
+          <Activity size={11} className={isSyncing ? "spin" : ""} /> {isSyncing ? "Syncing..." : "Pull Recipes"}
         </button>
       </div>
 
