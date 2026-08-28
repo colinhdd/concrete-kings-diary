@@ -1071,7 +1071,7 @@ export default function NewLoadForm({
               <option value="" disabled>-- Select Truck License Plate --</option>
               {trucks.map((t) => (
                 <option key={t.id} value={t.id}>
-                  {t.code} {t.driver ? `• ${t.driver}` : ""} ({t.capacityYards || 10} yd³)
+                  {t.code}
                 </option>
               ))}
               <option value="__custom__">➕ Other / Custom Plate...</option>
