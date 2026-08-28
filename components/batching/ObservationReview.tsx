@@ -106,17 +106,12 @@ export default function ObservationReview({
 
   // Separate loads into "Yet to be reviewed" (Pending) and "Reviewed / Archived"
   const pendingLoads = useMemo(() => {
-    return activeLoads.filter((l) => {
-      if (l.isReviewed === true) return false;
-      if (l.isReviewed === false) return true;
-      const obs = l.concreteObservations || [];
-      return obs.length === 0 || obs.includes("Pending Review");
-    });
+    return activeLoads.filter((l) => l.isReviewed !== true);
   }, [activeLoads]);
 
   const archivedLoads = useMemo(() => {
-    return activeLoads.filter((l) => !pendingLoads.some((p) => p.id === l.id));
-  }, [activeLoads, pendingLoads]);
+    return activeLoads.filter((l) => l.isReviewed === true);
+  }, [activeLoads]);
 
   // Active view: 'pending' or 'archived'
   const [viewMode, setViewMode] = useState<"pending" | "archived">("pending");
@@ -997,9 +992,9 @@ export default function ObservationReview({
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             {(viewMode === "pending" ? pendingLoads : archivedLoads).map((load) => {
-              const obs = Array.isArray(load.concreteObservations) && load.concreteObservations.length > 0
+              const obs = Array.isArray(load.concreteObservations)
                 ? load.concreteObservations
-                : ["Pending Review"];
+                : [];
               const isDidNotReview = obs.includes("Did Not Review") || obs.includes("Unreviewed / No Review Done");
               const hasIssues = obs.some(
                 (o) =>
@@ -1010,7 +1005,7 @@ export default function ObservationReview({
                   o !== "Did Not Review" &&
                   o !== "Unreviewed / No Review Done"
               );
-              const isPending = load.isReviewed !== true && (obs.includes("Pending Review") || obs.length === 0);
+              const isPending = load.isReviewed !== true;
               const hasAction = Boolean(load.actionTaken || (load.actionsTaken && load.actionsTaken.length > 0));
 
               return (
@@ -1076,11 +1071,7 @@ export default function ObservationReview({
                           </span>
                         )}
 
-                        {isPending ? (
-                          <span style={{ fontSize: "0.72rem", fontWeight: "800", padding: "3px 8px", borderRadius: "6px", backgroundColor: "rgba(245, 158, 11, 0.15)", color: "#f59e0b" }}>
-                            🟡 Awaiting Review
-                          </span>
-                        ) : isDidNotReview ? (
+                        {isPending ? null : isDidNotReview ? (
                           <span style={{ fontSize: "0.72rem", fontWeight: "800", padding: "3px 8px", borderRadius: "6px", backgroundColor: "rgba(107, 114, 128, 0.2)", color: "var(--text-muted)" }}>
                             ⚪ Did Not Review
                           </span>
@@ -1092,11 +1083,7 @@ export default function ObservationReview({
                           <span style={{ fontSize: "0.72rem", fontWeight: "800", padding: "3px 8px", borderRadius: "6px", backgroundColor: "rgba(16, 185, 129, 0.15)", color: "#10b981" }}>
                             ✓ Slump: {load.observedSlumpInches}&quot;
                           </span>
-                        ) : (
-                          <span style={{ fontSize: "0.72rem", fontWeight: "800", padding: "3px 8px", borderRadius: "6px", backgroundColor: "rgba(16, 185, 129, 0.15)", color: "#10b981" }}>
-                            ✓ Reviewed
-                          </span>
-                        )}
+                        ) : null}
                       </div>
                     </div>
                   </div>
