@@ -216,16 +216,8 @@ export default function MixConversionCalculator({
         </div>
       </div>
 
-      {/* Main Form Configuration Cards: Source & Target (Horizontal 2-Column Grid) */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "8px",
-          alignItems: "stretch",
-          marginBottom: "14px",
-        }}
-      >
+      {/* Main Form Configuration Cards: Source & Target (1 box per row on mobile, 2 columns on desktop) */}
+      <div className="conversion-config-grid">
         {/* Source Load Card */}
         <div
           style={{

@@ -991,3 +991,20 @@ body.dark-mode .tab-button.active {
     gap: 24px;
   }
 }
+
+/* Mix Converter: 1 box per row by itself on mobile, 2 columns on desktop/tablet */
+.conversion-config-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  align-items: stretch;
+  margin-bottom: 14px;
+}
+
+@media (min-width: 768px) {
+  .conversion-config-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+}
+
