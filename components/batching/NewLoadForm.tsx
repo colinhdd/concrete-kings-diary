@@ -1060,47 +1060,119 @@ export default function NewLoadForm({
             <Layers size={18} color="#e05300" /> 2. Mix Design & Batch Quantity
           </h3>
 
-          {/* Mix Design Dropdown, Batch Quantity Input & Sand Moisture */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            {/* 1. Mix Design (Full Width) */}
-            <div className="form-group" style={{ margin: 0, width: "100%" }}>
-              <label style={{ fontSize: "0.78rem", fontWeight: "700", color: "var(--text-primary)" }}>
-                Select Concrete Mix Design
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            {/* 1. TOP GROUP: Aggregate Moisture Settings (Sand & Stone) */}
+            <div>
+              <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "var(--text-secondary)", marginBottom: "4px", display: "block", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                Aggregate Moisture Settings
               </label>
-              <select
-                className="form-input"
-                value={selectedMixId}
-                onChange={(e) => handleMixChange(e.target.value)}
-                style={{
-                  fontSize: "0.9rem",
-                  fontWeight: "800",
-                  padding: "8px 10px",
-                  backgroundColor: "var(--bg-secondary)",
-                  color: "var(--text-primary)",
-                  border: "1.5px solid var(--glass-border)",
-                  borderRadius: "8px",
-                  width: "100%",
-                  minHeight: "38px",
-                }}
-              >
-                {groupedMixes.map(([groupName, list]) => (
-                  <optgroup key={groupName} label={`── ${groupName} ──`}>
-                    {list.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.code} - {m.description} ({m.strength})
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                {/* Sand Moisture */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "4px 8px",
+                    borderRadius: "8px",
+                    backgroundColor: "rgba(59, 130, 246, 0.08)",
+                    border: "1.5px solid rgba(59, 130, 246, 0.4)",
+                    minHeight: "38px",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    <Droplets size={14} color="#3b82f6" />
+                    <div>
+                      <span style={{ fontSize: "0.68rem", color: "var(--text-secondary)", display: "block", lineHeight: 1 }}>Sand</span>
+                      <span style={{ fontSize: "0.95rem", fontWeight: "900", color: "#3b82f6", fontFamily: "Outfit, sans-serif" }}>
+                        {sandMoisturePct}%
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onOpenMoistureModal?.("Sand")}
+                    className="btn-secondary"
+                    style={{ padding: "2px 6px", fontSize: "0.68rem", fontWeight: "800", minHeight: "26px" }}
+                  >
+                    Edit
+                  </button>
+                </div>
+
+                {/* Stone Moisture */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "4px 8px",
+                    borderRadius: "8px",
+                    backgroundColor: "rgba(16, 185, 129, 0.08)",
+                    border: "1.5px solid rgba(16, 185, 129, 0.4)",
+                    minHeight: "38px",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    <Droplets size={14} color="#10b981" />
+                    <div>
+                      <span style={{ fontSize: "0.68rem", color: "var(--text-secondary)", display: "block", lineHeight: 1 }}>Stone</span>
+                      <span style={{ fontSize: "0.95rem", fontWeight: "900", color: "#10b981", fontFamily: "Outfit, sans-serif" }}>
+                        {stoneMoisturePct}%
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onOpenMoistureModal?.("Stone")}
+                    className="btn-secondary"
+                    style={{ padding: "2px 6px", fontSize: "0.68rem", fontWeight: "800", minHeight: "26px" }}
+                  >
+                    Edit
+                  </button>
+                </div>
+              </div>
             </div>
 
-            {/* 2. Batch Quantity, Sand Moisture & Stone Moisture (3 Equal Columns) */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(90px, 1fr))", gap: "6px", alignItems: "end" }}>
+            {/* 2. BOTTOM GROUP: Mix Design & Batch Quantity */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr minmax(95px, 120px)", gap: "8px", alignItems: "end" }}>
+              {/* Mix Design */}
+              <div className="form-group" style={{ margin: 0 }}>
+                <label style={{ fontSize: "0.75rem", fontWeight: "700", color: "var(--text-primary)", marginBottom: "3px", display: "block" }}>
+                  Select Concrete Mix Design
+                </label>
+                <select
+                  className="form-input"
+                  value={selectedMixId}
+                  onChange={(e) => handleMixChange(e.target.value)}
+                  style={{
+                    fontSize: "0.9rem",
+                    fontWeight: "800",
+                    padding: "8px 10px",
+                    backgroundColor: "var(--bg-secondary)",
+                    color: "var(--text-primary)",
+                    border: "1.5px solid var(--glass-border)",
+                    borderRadius: "8px",
+                    width: "100%",
+                    minHeight: "38px",
+                    cursor: "pointer",
+                  }}
+                >
+                  {groupedMixes.map(([groupName, list]) => (
+                    <optgroup key={groupName} label={`── ${groupName} ──`}>
+                      {list.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.code} - {m.description} ({m.strength})
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </div>
+
               {/* Batch Quantity */}
               <div className="form-group" style={{ margin: 0 }}>
-                <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "var(--text-primary)" }}>
-                  Quantity (Yards)
+                <label style={{ fontSize: "0.75rem", fontWeight: "700", color: "var(--text-primary)", marginBottom: "3px", display: "block" }}>
+                  Quantity (yd³)
                 </label>
                 <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                   <input
@@ -1132,74 +1204,6 @@ export default function NewLoadForm({
                   <span style={{ fontSize: "0.85rem", fontWeight: "900", color: "#e05300", fontFamily: "Outfit, sans-serif", flexShrink: 0 }}>
                     yd³
                   </span>
-                </div>
-              </div>
-
-              {/* Sand Moisture */}
-              <div className="form-group" style={{ margin: 0 }}>
-                <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "var(--text-primary)" }}>
-                  Sand Moist (%)
-                </label>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "4px 6px",
-                    borderRadius: "8px",
-                    backgroundColor: "rgba(59, 130, 246, 0.08)",
-                    border: "1.5px solid rgba(59, 130, 246, 0.4)",
-                    minHeight: "38px",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
-                    <Droplets size={13} color="#3b82f6" />
-                    <span style={{ fontSize: "0.95rem", fontWeight: "900", color: "#3b82f6", fontFamily: "Outfit, sans-serif" }}>
-                      {sandMoisturePct}%
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => onOpenMoistureModal?.("Sand")}
-                    className="btn-secondary"
-                    style={{ padding: "2px 5px", fontSize: "0.65rem", fontWeight: "800", minHeight: "26px" }}
-                  >
-                    Edit
-                  </button>
-                </div>
-              </div>
-
-              {/* Stone Moisture */}
-              <div className="form-group" style={{ margin: 0 }}>
-                <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "var(--text-primary)" }}>
-                  Stone Moist (%)
-                </label>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "4px 6px",
-                    borderRadius: "8px",
-                    backgroundColor: "rgba(16, 185, 129, 0.08)",
-                    border: "1.5px solid rgba(16, 185, 129, 0.4)",
-                    minHeight: "38px",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
-                    <Droplets size={13} color="#10b981" />
-                    <span style={{ fontSize: "0.95rem", fontWeight: "900", color: "#10b981", fontFamily: "Outfit, sans-serif" }}>
-                      {stoneMoisturePct}%
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => onOpenMoistureModal?.("Stone")}
-                    className="btn-secondary"
-                    style={{ padding: "2px 5px", fontSize: "0.65rem", fontWeight: "800", minHeight: "26px" }}
-                  >
-                    Edit
-                  </button>
                 </div>
               </div>
             </div>
