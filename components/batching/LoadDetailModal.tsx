@@ -52,12 +52,18 @@ export default function LoadDetailModal({
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
+    let ignore = false;
     if (load && isOpen) {
-      getAuditTrailForLoad(load.id).then(setAuditHistory);
+      getAuditTrailForLoad(load.id).then((trail) => {
+        if (!ignore) setAuditHistory(trail);
+      }).catch(() => {
+        if (!ignore) setAuditHistory([]);
+      });
       setIsVoiding(false);
       setVoidReason("");
     }
-  }, [load, isOpen]);
+    return () => { ignore = true; };
+  }, [load?.id, isOpen]);
 
   if (!isOpen || !load) return null;
 

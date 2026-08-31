@@ -42,13 +42,15 @@ export default function TodaysLoads({
 
   const filteredLoads = useMemo(() => {
     return loads.filter((load) => {
+      const term = searchTerm.trim().toLowerCase();
       const matchesSearch =
-        !searchTerm.trim() ||
-        load.truckCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        load.mixCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        !term ||
+        (load.truckCode || "").toLowerCase().includes(term) ||
+        (load.mixCode || "").toLowerCase().includes(term) ||
+        (load.batchNumber || "").toLowerCase().includes(term) ||
         (Array.isArray(load.concreteObservations) &&
           load.concreteObservations.some((o) =>
-            o.toLowerCase().includes(searchTerm.toLowerCase())
+            typeof o === "string" && o.toLowerCase().includes(term)
           ));
 
       const matchesMix = filterMix === "all" || load.mixCode === filterMix;

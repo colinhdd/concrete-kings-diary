@@ -139,20 +139,37 @@ export default function ObservationReview({
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
   const [isListeningSpeech, setIsListeningSpeech] = useState<boolean>(false);
 
-  // Sync form state when selected load changes
+  // Refs for cleanup
+  const saveTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isMountedRef = React.useRef<boolean>(true);
+
   useEffect(() => {
-    if (selectedLoad) {
-      setTicketNumber(selectedLoad.ticketNumber || "");
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, []);
+  const lastInitializedLoadId = React.useRef<string | null>(null);
+
+  // Sync form state ONLY when the user selects a DIFFERENT load (not on background refreshes)
+  useEffect(() => {
+    if (selectedLoadId && selectedLoadId !== lastInitializedLoadId.current) {
+      lastInitializedLoadId.current = selectedLoadId;
+      const load = activeLoads.find((l) => l.id === selectedLoadId);
+      if (!load) return;
+
+      setTicketNumber(load.ticketNumber || "");
       setTicketError(null);
 
-      if (selectedLoad.observedSlumpInches !== undefined) {
-        setAssumedSlump(selectedLoad.observedSlumpInches);
+      if (load.observedSlumpInches !== undefined) {
+        setAssumedSlump(load.observedSlumpInches);
       } else {
         setAssumedSlump(5.0);
       }
 
-      const obs = Array.isArray(selectedLoad.concreteObservations)
-        ? selectedLoad.concreteObservations.filter(
+      const obs = Array.isArray(load.concreteObservations)
+        ? load.concreteObservations.filter(
             (o) =>
               o !== "Pending Review" &&
               !o.startsWith("Stiff (") &&
@@ -163,13 +180,18 @@ export default function ObservationReview({
         : [];
       setSelectedObs(obs);
 
-      const actions = Array.isArray(selectedLoad.actionsTaken) ? selectedLoad.actionsTaken : [];
+      const actions = Array.isArray(load.actionsTaken) ? load.actionsTaken : [];
       setSelectedActions(actions);
-      setActionDetails(selectedLoad.actionTaken || "");
-      setNotes(selectedLoad.batcherNotes || "");
+      setActionDetails(load.actionTaken || "");
+      setNotes(load.batcherNotes || "");
       setSaveSuccess(null);
     }
-  }, [selectedLoad]);
+
+    // Reset tracker when deselected
+    if (!selectedLoadId) {
+      lastInitializedLoadId.current = null;
+    }
+  }, [selectedLoadId, activeLoads]);
 
   const handleToggleObservation = (label: string) => {
     setSelectedObs((prev) => {
@@ -207,12 +229,14 @@ export default function ObservationReview({
       recognition.interimResults = false;
       recognition.lang = "en-US";
 
-      recognition.onstart = () => setIsListeningSpeech(true);
-      recognition.onend = () => setIsListeningSpeech(false);
-      recognition.onerror = () => setIsListeningSpeech(false);
+      recognition.onstart = () => { if (isMountedRef.current) setIsListeningSpeech(true); };
+      recognition.onend = () => { if (isMountedRef.current) setIsListeningSpeech(false); };
+      recognition.onerror = () => { if (isMountedRef.current) setIsListeningSpeech(false); };
 
       recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
+        if (!isMountedRef.current) return;
+        const transcript = event.results[0]?.[0]?.transcript;
+        if (!transcript) return;
         if (target === "action") {
           setActionDetails((prev) => (prev ? `${prev} ${transcript}` : transcript));
         } else {
@@ -272,7 +296,9 @@ export default function ObservationReview({
       if (updated) {
         onLoadUpdated(updated);
         setSaveSuccess(`✓ Truck ${selectedLoad.truckCode} reviewed and archived!`);
-        setTimeout(() => {
+        if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = setTimeout(() => {
+          if (!isMountedRef.current) return;
           setSaveSuccess(null);
           setSelectedLoadId(null); // Return to full-width queue
         }, 800);
@@ -307,7 +333,9 @@ export default function ObservationReview({
       if (updated) {
         onLoadUpdated(updated);
         setSaveSuccess(`Truck ${selectedLoad.truckCode} marked as Did Not Review.`);
-        setTimeout(() => {
+        if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = setTimeout(() => {
+          if (!isMountedRef.current) return;
           setSaveSuccess(null);
           setSelectedLoadId(null);
         }, 800);
@@ -993,9 +1021,9 @@ export default function ObservationReview({
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             {(viewMode === "pending" ? pendingLoads : archivedLoads).map((load) => {
               const obs = Array.isArray(load.concreteObservations)
-                ? load.concreteObservations
+                ? load.concreteObservations.filter((o): o is string => typeof o === "string")
                 : [];
-              const isDidNotReview = obs.includes("Did Not Review") || obs.includes("Unreviewed / No Review Done");
+              const isDidNotReview = obs.some((o) => o === "Did Not Review" || o === "Unreviewed / No Review Done");
               const hasIssues = obs.some(
                 (o) =>
                   o.toLowerCase() !== "perfect" &&

@@ -373,6 +373,7 @@ export default function HomeScreen({
                 : [];
 
               const actualIssues = rawObs.filter((o) => {
+                if (typeof o !== "string") return false;
                 const lower = o.trim().toLowerCase();
                 return (
                   lower !== "perfect" &&
@@ -385,7 +386,7 @@ export default function HomeScreen({
                 );
               });
 
-              const isDidNotReview = rawObs.some((o) => o.trim().toLowerCase() === "did not review");
+              const isDidNotReview = rawObs.some((o) => typeof o === "string" && o.trim().toLowerCase() === "did not review");
               const hasNotes = Boolean(load.batcherNotes && load.batcherNotes.trim());
               const actionsList = (load.actionsTaken && load.actionsTaken.length > 0)
                 ? load.actionsTaken
