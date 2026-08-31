@@ -229,11 +229,11 @@ export default function ObservationReview({
   const handleSaveObservation = async (overrideSlump?: number, overrideObs?: string[], overrideActions?: string[]) => {
     if (!selectedLoad) return;
 
-    // Validate mandatory 6-digit ticket number
-    const cleanTicket = ticketNumber.replace(/\D/g, "").slice(0, 6);
-    if (cleanTicket.length !== 6) {
-      setTicketError("A 6-digit delivery ticket number is required to review this load (e.g. 102458).");
-      alert("Please enter a valid 6-digit delivery ticket number before saving this review.");
+    // Validate mandatory 5-digit ticket number
+    const cleanTicket = ticketNumber.replace(/\D/g, "").slice(0, 5);
+    if (cleanTicket.length !== 5) {
+      setTicketError("A 5-digit delivery ticket number is required to review this load (e.g. 10245).");
+      alert("Please enter a valid 5-digit delivery ticket number before saving this review.");
       return;
     }
 
@@ -459,7 +459,7 @@ export default function ObservationReview({
             Did Not Review
           </button>
 
-          {/* ================= MANDATORY 6-DIGIT DELIVERY TICKET NUMBER ================= */}
+          {/* ================= MANDATORY 5-DIGIT DELIVERY TICKET NUMBER ================= */}
           <div
             style={{
               padding: "16px",
@@ -473,10 +473,10 @@ export default function ObservationReview({
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <label style={{ fontSize: "0.92rem", fontWeight: "800", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "6px" }}>
-                <Ticket size={18} color="#e05300" /> Delivery Ticket # <span style={{ color: "#ef4444", fontSize: "0.82rem" }}>* (6 Digits Required)</span>
+                <Ticket size={18} color="#e05300" /> Delivery Ticket # <span style={{ color: "#ef4444", fontSize: "0.82rem" }}>* (5 Digits Required)</span>
               </label>
-              <span style={{ fontSize: "0.8rem", fontWeight: "800", color: ticketNumber.length === 6 ? "#10b981" : "#f59e0b" }}>
-                {ticketNumber.length === 6 ? "✓ Complete" : `${ticketNumber.length}/6 Digits`}
+              <span style={{ fontSize: "0.8rem", fontWeight: "800", color: ticketNumber.length === 5 ? "#10b981" : "#f59e0b" }}>
+                {ticketNumber.length === 5 ? "✓ Complete" : `${ticketNumber.length}/5 Digits`}
               </span>
             </div>
 
@@ -485,17 +485,17 @@ export default function ObservationReview({
                 type="text"
                 inputMode="numeric"
                 pattern="[0-9]*"
-                maxLength={6}
+                maxLength={5}
                 className="form-input"
                 value={ticketNumber}
                 onChange={(e) => {
-                  const val = e.target.value.replace(/\D/g, "").slice(0, 6);
+                  const val = e.target.value.replace(/\D/g, "").slice(0, 5);
                   setTicketNumber(val);
-                  if (val.length === 6) {
+                  if (val.length === 5) {
                     setTicketError(null);
                   }
                 }}
-                placeholder="e.g. 102458"
+                placeholder="e.g. 10245"
                 style={{
                   fontSize: "1.4rem",
                   fontWeight: "900",
@@ -518,7 +518,7 @@ export default function ObservationReview({
               </div>
             ) : (
               <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                Input the 6-digit physical delivery ticket number printed for this batch.
+                Input the 5-digit physical delivery ticket number printed for this batch.
               </div>
             )}
           </div>
